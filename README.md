@@ -72,12 +72,23 @@ Jackson deduces the subtype from the properties present.
 ```java
 @RestController
 @RequestMapping("/products")
-public class ProductController extends AbstractFilterController<Product, Long> {
-    private final CriteriaRepositoryRegistry registry;
-    public ProductController(CriteriaRepositoryRegistry registry) { this.registry = registry; }
+public class ProductController extends AbstractFilterController<Product> {
 
-    @Override protected CriteriaRepository<Product, ?> repository() { return registry.resolve(Product.class); }
+    private final CriteriaRepositoryRegistry registry;
+    private final FilterMetadataRegistry metadataRegistry;
+
+    public ProductController(CriteriaRepositoryRegistry registry,
+                             FilterMetadataRegistry metadataRegistry,
+                             FilterValidator filterValidator,
+                             FilterInterceptorChain interceptorChain) {
+        super(filterValidator, interceptorChain);
+        this.registry = registry;
+        this.metadataRegistry = metadataRegistry;
+    }
+
+    @Override protected CriteriaRepository<Product> repository() { return registry.resolve(Product.class); }
     @Override protected Class<Product> entityType() { return Product.class; }
+    @Override protected FilterMetadataRegistry metadataRegistry() { return metadataRegistry; }
 }
 ```
 
