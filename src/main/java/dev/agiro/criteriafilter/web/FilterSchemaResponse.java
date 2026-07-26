@@ -182,50 +182,47 @@ public record FilterSchemaResponse(
             FieldSchema f2 = fields.size() > 1 ? fields.get(1) : f1;
 
             String op1 = f1.operators().contains("EQ") ? "EQ" : f1.operators().get(0);
-            String op2 = f2.operators().contains("LIKE") ? "LIKE" : 
+            String op2 = f2.operators().contains("LIKE") ? "LIKE" :
                          f2.operators().contains("EQ") ? "EQ" : f2.operators().get(0);
 
-            Object simpleAnd = new java.util.LinkedHashMap<String, Object>() {{
-                put("filter", new java.util.LinkedHashMap<String, Object>() {{
-                    put("and", Arrays.asList(
-                            new java.util.LinkedHashMap<String, Object>() {{
-                                put("field", f1.name());
-                                put("operator", op1);
-                                put("value", exampleValueFor(f1.type()));
-                            }},
-                            new java.util.LinkedHashMap<String, Object>() {{
-                                put("field", f2.name());
-                                put("operator", op2);
-                                put("value", exampleValueFor(f2.type()));
-                            }}
-                    ));
-                }});
-            }};
+            java.util.LinkedHashMap<String, Object> f1Entry = new java.util.LinkedHashMap<>();
+            f1Entry.put("field", f1.name());
+            f1Entry.put("operator", op1);
+            f1Entry.put("value", exampleValueFor(f1.type()));
 
-            Object nestedAndOr = new java.util.LinkedHashMap<String, Object>() {{
-                put("filter", new java.util.LinkedHashMap<String, Object>() {{
-                    put("and", Arrays.asList(
-                            new java.util.LinkedHashMap<String, Object>() {{
-                                put("field", f1.name());
-                                put("operator", op1);
-                                put("value", exampleValueFor(f1.type()));
-                            }},
-                            new java.util.LinkedHashMap<String, Object>() {{
-                                put("or", Arrays.asList(
-                                        new java.util.LinkedHashMap<String, Object>() {{
-                                            put("field", f2.name());
-                                            put("operator", op2);
-                                            put("value", exampleValueFor(f2.type()));
-                                        }},
-                                        new java.util.LinkedHashMap<String, Object>() {{
-                                            put("field", f2.name());
-                                            put("operator", "IS_NOT_NULL");
-                                        }}
-                                ));
-                            }}
-                    ));
-                }});
-            }};
+            java.util.LinkedHashMap<String, Object> f2Entry = new java.util.LinkedHashMap<>();
+            f2Entry.put("field", f2.name());
+            f2Entry.put("operator", op2);
+            f2Entry.put("value", exampleValueFor(f2.type()));
+
+            java.util.LinkedHashMap<String, Object> simpleAndFilter = new java.util.LinkedHashMap<>();
+            simpleAndFilter.put("and", Arrays.asList(f1Entry, f2Entry));
+
+            java.util.LinkedHashMap<String, Object> simpleAnd = new java.util.LinkedHashMap<>();
+            simpleAnd.put("filter", simpleAndFilter);
+
+            java.util.LinkedHashMap<String, Object> nestedF1Entry = new java.util.LinkedHashMap<>();
+            nestedF1Entry.put("field", f1.name());
+            nestedF1Entry.put("operator", op1);
+            nestedF1Entry.put("value", exampleValueFor(f1.type()));
+
+            java.util.LinkedHashMap<String, Object> orEntry1 = new java.util.LinkedHashMap<>();
+            orEntry1.put("field", f2.name());
+            orEntry1.put("operator", op2);
+            orEntry1.put("value", exampleValueFor(f2.type()));
+
+            java.util.LinkedHashMap<String, Object> orEntry2 = new java.util.LinkedHashMap<>();
+            orEntry2.put("field", f2.name());
+            orEntry2.put("operator", "IS_NOT_NULL");
+
+            java.util.LinkedHashMap<String, Object> orGroup = new java.util.LinkedHashMap<>();
+            orGroup.put("or", Arrays.asList(orEntry1, orEntry2));
+
+            java.util.LinkedHashMap<String, Object> nestedAndOrFilter = new java.util.LinkedHashMap<>();
+            nestedAndOrFilter.put("and", Arrays.asList(nestedF1Entry, orGroup));
+
+            java.util.LinkedHashMap<String, Object> nestedAndOr = new java.util.LinkedHashMap<>();
+            nestedAndOr.put("filter", nestedAndOrFilter);
 
             return new ExampleFilter(simpleAnd, nestedAndOr);
         }
