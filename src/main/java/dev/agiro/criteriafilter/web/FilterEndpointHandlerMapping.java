@@ -30,20 +30,23 @@ public class FilterEndpointHandlerMapping extends RequestMappingHandlerMapping {
     /**
      * Registers search and schema mappings for the given adapter and path.
      */
-    public void registerEndpoint(String searchPath, String schemaPath, FilterEndpointAdapter handler) {
-        Method searchMethod = handler.searchMethod();
-        Method schemaMethod = handler.schemaMethod();
+public void registerEndpoint(String searchPath, String schemaPath, FilterEndpointAdapter handler) {
+    Method searchMethod = handler.searchMethod();
 
-        RequestMappingInfo searchInfo = RequestMappingInfo
-                .paths(searchPath)
-                .methods(RequestMethod.POST)
-                .build();
-        super.registerMapping(searchInfo, handler, searchMethod);
+    RequestMappingInfo searchInfo = RequestMappingInfo
+            .paths(searchPath)
+            .methods(RequestMethod.POST)
+            .build();
+    super.registerMapping(searchInfo, handler, searchMethod);
 
-        RequestMappingInfo schemaInfo = RequestMappingInfo
-                .paths(schemaPath)
-                .methods(RequestMethod.GET)
-                .build();
-        super.registerMapping(schemaInfo, handler, schemaMethod);
+    if (schemaPath == null || schemaPath.isBlank()) {
+        return;
     }
+
+    Method schemaMethod = handler.schemaMethod();
+    RequestMappingInfo schemaInfo = RequestMappingInfo
+            .paths(schemaPath)
+            .methods(RequestMethod.GET)
+            .build();
+    super.registerMapping(schemaInfo, handler, schemaMethod);
 }
