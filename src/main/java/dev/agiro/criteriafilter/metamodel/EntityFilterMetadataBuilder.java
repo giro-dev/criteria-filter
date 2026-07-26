@@ -32,11 +32,25 @@ public class EntityFilterMetadataBuilder {
         Class<?> entityType = marker.entity() == Void.class ? annotatedType : marker.entity();
 
         Map<String, FieldMetadata> fields = new LinkedHashMap<>();
+        boolean hasExplicitFields = hasAnyFilterFieldAnnotation(annotatedType);
+        
         for (Field field : declaredFields(annotatedType)) {
             FilterField ff = field.getAnnotation(FilterField.class);
-            if (ff == null || ff.excluded()) {
-                continue;
+            
+            // If explicit @FilterField annotations exist, only include annotated fields
+            if (hasExplicitFields) {
+                if (ff == null || ff.excluded()) {
+                    continue;
+                }
+            } else {
+                // No explicit annotations: include all non-synthetic, non-static fields
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) ||
+                    field.isSynthetic() ||
+                    (ff != null && ff.excluded())) {
+                    continue;
+                }
             }
+            
             FieldMetadata metadata = buildField(annotatedType, entityType, field, ff);
             FieldMetadata previous = fields.putIfAbsent(metadata.logicalName(), metadata);
             if (previous != null) {
@@ -45,6 +59,15 @@ public class EntityFilterMetadataBuilder {
             }
         }
         return new EntityFilterMetadata(entityType, marker.backend(), fields);
+    }
+    
+    private boolean hasAnyFilterFieldAnnotation(Class<?> type) {
+        for (Field field : declaredFields(type)) {
+            if (field.getAnnotation(FilterField.class) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private FieldMetadata buildField(Class<?> annotatedType, Class<?> entityType,
@@ -57,17 +80,30 @@ public class EntityFilterMetadataBuilder {
                     + annotatedType.getName() + " does not exist on entity " + entityType.getName());
         }
 
-        String logicalName = ff.name().isBlank() ? javaFieldName : ff.name();
-        Set<Operator> operators = ff.operators().length > 0
-                ? EnumSet.copyOf(java.util.Arrays.asList(ff.operators()))
-                : OperatorInference.defaultsFor(field.getType());
-        String openSearchField = ff.openSearchField().isBlank() ? logicalName : ff.openSearchField();
-        String hibernateSearchField = ff.hibernateSearchField().isBlank()
+        // Handle case when no @FilterField annotation (auto-discovery mode)
+        String logicalName = (ff == null || ff.name().isBlank()) ? javaFieldName : ff.name();
+        boolean explicitJson = ff != null && ff.json();
+        Set<Operator> operators;
+        if (ff != null && ff.operators().length > 0) {
+            operators = EnumSet.copyOf(java.util.Arrays.asList(ff.operators()));
+        } else if (explicitJson) {
+            // @FilterField(json = true) forces JSON operators regardless of Java type
+            // (e.g. a POJO persisted as JSON/JSONB rather than a generic Map).
+            operators = OperatorInference.jsonDefaults();
+        } else {
+            operators = OperatorInference.defaultsFor(field.getType());
+        }
+        String openSearchField = (ff == null || ff.openSearchField().isBlank()) ? logicalName : ff.openSearchField();
+        String hibernateSearchField = (ff == null || ff.hibernateSearchField().isBlank())
                 ? logicalName : ff.hibernateSearchField();
-        Map<Backend, String> datePatterns = datePatternResolver.resolve(field.getType(), ff.datePattern());
+        String datePattern = (ff == null) ? "" : ff.datePattern();
+        Map<Backend, String> datePatterns = datePatternResolver.resolve(field.getType(), datePattern);
+        boolean nested = (ff != null) && ff.nested();
+        java.time.temporal.ChronoUnit dateTruncate = (ff == null) 
+                ? java.time.temporal.ChronoUnit.MILLIS : ff.dateTruncate();
 
         return new FieldMetadata(logicalName, javaFieldName, field.getType(), operators,
-                openSearchField, hibernateSearchField, ff.nested(), datePatterns, ff.dateTruncate());
+                openSearchField, hibernateSearchField, nested, datePatterns, dateTruncate);
     }
 
     private static Iterable<Field> declaredFields(Class<?> type) {

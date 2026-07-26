@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,8 +40,23 @@ public final class OperatorInference {
             return EnumSet.of(Operator.EQ, Operator.NE, Operator.IN,
                     Operator.IS_NULL, Operator.IS_NOT_NULL);
         }
+        // Map types (JSONB fields) - include JSON operators
+        if (Map.class.isAssignableFrom(type)) {
+            return jsonDefaults();
+        }
         // Fallback: equality only.
         return EnumSet.of(Operator.EQ, Operator.NE, Operator.IS_NULL, Operator.IS_NOT_NULL);
+    }
+
+    /**
+     * Default operator set for JSON/JSONB columns, regardless of the Java
+     * type used to represent them (generic {@code Map} or a custom POJO
+     * explicitly marked via {@code @FilterField(json = true)}).
+     */
+    public static Set<Operator> jsonDefaults() {
+        return EnumSet.of(Operator.EQ, Operator.NE, Operator.IS_NULL, Operator.IS_NOT_NULL,
+                Operator.JSON_EXISTS, Operator.JSON_PATH_EQ, Operator.JSON_CONTAINS,
+                Operator.JSON_ARRAY_CONTAINS);
     }
 
     public static boolean isNumber(Class<?> type) {

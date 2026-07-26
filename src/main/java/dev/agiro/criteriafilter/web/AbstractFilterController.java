@@ -1,5 +1,6 @@
 package dev.agiro.criteriafilter.web;
 
+import dev.agiro.criteriafilter.interceptor.FilterInterceptor;
 import dev.agiro.criteriafilter.interceptor.FilterInterceptorChain;
 import dev.agiro.criteriafilter.metamodel.EntityFilterMetadata;
 import dev.agiro.criteriafilter.metamodel.FilterMetadataRegistry;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * Base controller exposing uniform search endpoints:
@@ -48,6 +51,21 @@ public abstract class AbstractFilterController<T> {
     protected abstract Class<T> entityType();
 
     protected abstract FilterMetadataRegistry metadataRegistry();
+
+    /**
+     * Opt-in interceptors to apply to this controller's {@code /search}
+     * endpoint, in addition to any globally-applicable ones. Only takes
+     * effect for interceptor beans whose {@link FilterInterceptor#global()}
+     * returns {@code false}.
+     *
+     * <p>Override to attach an endpoint-specific interceptor (e.g. an
+     * "internal-only" or "external-only" background filter) without making
+     * it apply to every search for the entity. Defaults to none.
+     */
+    @SuppressWarnings("rawtypes")
+    protected List<Class<? extends FilterInterceptor>> interceptors() {
+        return List.of();
+    }
 
     @Operation(
             summary = "Search with filters",
@@ -222,7 +240,7 @@ public abstract class AbstractFilterController<T> {
 
         filterValidator.validate(request, entityType());
         FilterResult<T> result = interceptorChain.execute(
-                entityType(), request, new PageRequest(page, size), repository());
+                entityType(), request, new PageRequest(page, size), repository(), interceptors());
         return ResponseEntity.ok(result);
     }
 

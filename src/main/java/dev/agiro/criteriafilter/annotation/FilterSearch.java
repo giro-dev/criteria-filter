@@ -1,5 +1,7 @@
 package dev.agiro.criteriafilter.annotation;
 
+import dev.agiro.criteriafilter.interceptor.FilterInterceptor;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -43,4 +45,17 @@ public @interface FilterSearch {
 
     /** Whether the framework should execute the default filter logic. */
     boolean executeDefault() default true;
+
+    /**
+     * Opt-in interceptors to apply to this endpoint's search, in addition to
+     * any globally-applicable ones. Only takes effect for interceptor beans
+     * whose {@link FilterInterceptor#global()} returns {@code false}; global
+     * interceptors already run automatically and do not need to be listed
+     * here.
+     *
+     * <p>Useful to attach an endpoint-specific interceptor (e.g. an
+     * "internal-only" or "external-only" background filter) without making
+     * it apply to every search for the entity.
+     */
+    Class<? extends FilterInterceptor>[] interceptors() default {};
 }

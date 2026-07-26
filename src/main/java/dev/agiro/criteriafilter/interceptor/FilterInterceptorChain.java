@@ -27,7 +27,7 @@ public class FilterInterceptorChain {
     }
 
     /**
-     * Executes the filter operation with all applicable interceptors.
+     * Executes the filter operation with all globally-applicable interceptors.
      *
      * @param entityType  The entity type being filtered
      * @param request     The original filter request
@@ -35,14 +35,38 @@ public class FilterInterceptorChain {
      * @param repository  The repository to execute the query
      * @return The filter result (possibly modified by interceptors)
      */
-    @SuppressWarnings("unchecked")
     public <T> FilterResult<T> execute(Class<T> entityType,
                                         FilterRequest request,
                                         PageRequest pageRequest,
                                         CriteriaRepository<T> repository) {
+        return execute(entityType, request, pageRequest, repository, List.of());
+    }
+
+    /**
+     * Executes the filter operation with all globally-applicable interceptors,
+     * plus any non-global (opt-in) interceptors explicitly requested by class.
+     *
+     * @param entityType           The entity type being filtered
+     * @param request              The original filter request
+     * @param pageRequest          Pagination parameters
+     * @param repository           The repository to execute the query
+     * @param extraInterceptors    Interceptor classes to include for this call
+     *                             even if {@link FilterInterceptor#global()} is
+     *                             {@code false}. Matched by
+     *                             {@code Class#isAssignableFrom} against the
+     *                             actual interceptor bean class, so interfaces
+     *                             or superclasses may be used too.
+     * @return The filter result (possibly modified by interceptors)
+     */
+    @SuppressWarnings("rawtypes")
+    public <T> FilterResult<T> execute(Class<T> entityType,
+                                        FilterRequest request,
+                                        PageRequest pageRequest,
+                                        CriteriaRepository<T> repository,
+                                        List<Class<? extends FilterInterceptor>> extraInterceptors) {
 
         FilterContext<T> context = new FilterContext<>(entityType, request, pageRequest);
-        List<FilterInterceptor<T>> applicable = findApplicable(entityType);
+        List<FilterInterceptor<T>> applicable = findApplicable(entityType, extraInterceptors);
 
         // Pre-filter phase
         for (FilterInterceptor<T> interceptor : applicable) {
@@ -79,16 +103,37 @@ public class FilterInterceptorChain {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> List<FilterInterceptor<T>> findApplicable(Class<T> entityType) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> List<FilterInterceptor<T>> findApplicable(Class<T> entityType,
+                                                            List<Class<? extends FilterInterceptor>> extraInterceptors) {
         List<FilterInterceptor<T>> applicable = new ArrayList<>();
         for (FilterInterceptor<?> interceptor : interceptors) {
             Class<?> targetType = interceptor.entityType();
-            if (targetType == Object.class || targetType.isAssignableFrom(entityType)) {
+            boolean matchesEntity = targetType == Object.class || targetType.isAssignableFrom(entityType);
+            if (!matchesEntity) {
+                continue;
+            }
+            boolean autoApply = interceptor.global();
+            boolean explicitlyRequested = !autoApply && matchesByClass(extraInterceptors, interceptor.getClass());
+            if (autoApply || explicitlyRequested) {
                 applicable.add((FilterInterceptor<T>) interceptor);
             }
         }
         return applicable;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private boolean matchesByClass(List<Class<? extends FilterInterceptor>> extraInterceptors,
+                                    Class<?> actualClass) {
+        if (extraInterceptors == null || extraInterceptors.isEmpty()) {
+            return false;
+        }
+        for (Class<? extends FilterInterceptor> requested : extraInterceptors) {
+            if (requested.isAssignableFrom(actualClass)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

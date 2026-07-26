@@ -1,5 +1,6 @@
 package dev.agiro.criteriafilter.web;
 
+import dev.agiro.criteriafilter.interceptor.FilterInterceptor;
 import dev.agiro.criteriafilter.interceptor.FilterInterceptorChain;
 import dev.agiro.criteriafilter.metamodel.FilterMetadataRegistry;
 import dev.agiro.criteriafilter.model.FilterRequest;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Stateless handler invoked for filter endpoints registered dynamically by
@@ -26,17 +28,30 @@ public class FilterEndpointAdapter {
     private final CriteriaRepositoryRegistry repositoryRegistry;
     private final FilterMetadataRegistry metadataRegistry;
     private final FilterInterceptorChain interceptorChain;
+    @SuppressWarnings("rawtypes")
+    private final List<Class<? extends FilterInterceptor>> interceptors;
 
     public FilterEndpointAdapter(Class<?> entityType,
                                   FilterValidator filterValidator,
                                   CriteriaRepositoryRegistry repositoryRegistry,
                                   FilterMetadataRegistry metadataRegistry,
                                   FilterInterceptorChain interceptorChain) {
+        this(entityType, filterValidator, repositoryRegistry, metadataRegistry, interceptorChain, List.of());
+    }
+
+    @SuppressWarnings("rawtypes")
+    public FilterEndpointAdapter(Class<?> entityType,
+                                  FilterValidator filterValidator,
+                                  CriteriaRepositoryRegistry repositoryRegistry,
+                                  FilterMetadataRegistry metadataRegistry,
+                                  FilterInterceptorChain interceptorChain,
+                                  List<Class<? extends FilterInterceptor>> interceptors) {
         this.entityType = entityType;
         this.filterValidator = filterValidator;
         this.repositoryRegistry = repositoryRegistry;
         this.metadataRegistry = metadataRegistry;
         this.interceptorChain = interceptorChain;
+        this.interceptors = interceptors;
     }
 
     @SuppressWarnings("unchecked")
@@ -48,7 +63,7 @@ public class FilterEndpointAdapter {
         filterValidator.validate(request, entityType);
         CriteriaRepository<Object> repository = (CriteriaRepository<Object>) repositoryRegistry.resolve(entityType);
         FilterResult<Object> result = interceptorChain.execute(
-                (Class<Object>) entityType, request, new PageRequest(page, size), repository);
+                (Class<Object>) entityType, request, new PageRequest(page, size), repository, interceptors);
         return ResponseEntity.ok(result);
     }
 

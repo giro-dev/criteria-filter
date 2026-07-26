@@ -59,8 +59,8 @@ public class FilterEndpointAspect {
 
         filterValidator.validate(request, entityType);
         CriteriaRepository<Object> repository = (CriteriaRepository<Object>) repositoryRegistry.resolve(entityType);
-        
-        return interceptorChain.execute(entityType, request, page, repository);
+
+        return interceptorChain.execute(entityType, request, page, repository, java.util.List.of(annotation.interceptors()));
     }
 
     @Around("@annotation(dev.agiro.criteriafilter.annotation.FilterSchema)")

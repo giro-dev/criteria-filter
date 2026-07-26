@@ -172,9 +172,29 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
     }
 
     /**
-     * JSONB array contains single value: {@code column @> '["value"]'::jsonb}
+     * JSONB array contains single value.
+     * Two modes:
+     * 1. Single operand: column @> '["value"]'::jsonb (array at root)
+     * 2. Two operands [path, value]: column->'path' @> '["value"]'::jsonb (nested array)
      */
     private Predicate jsonArrayContains(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
+        if (operands.size() == 2) {
+            // Nested array: column->'path' @> '["value"]'
+            String jsonPath = operands.get(0).toString();
+            String value = operands.get(1).toString();
+            String jsonArray = toJsonArray(List.of(value));
+            
+            // Extract the nested path first, then check containment
+            Expression<String> nestedPath = cb.function("jsonb_extract_path", String.class,
+                    path.as(String.class),
+                    cb.literal(jsonPath));
+            return cb.isTrue(
+                    cb.function("jsonb_contains", Boolean.class,
+                            nestedPath,
+                            cb.literal(jsonArray))
+            );
+        }
+        // Root array: column @> '["value"]'
         String jsonArray = toJsonArray(List.of(operands.get(0)));
         return cb.isTrue(
                 cb.function("jsonb_contains", Boolean.class,

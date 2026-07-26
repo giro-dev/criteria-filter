@@ -34,6 +34,16 @@ public @interface FilterField {
     /** Whether the field maps to a nested object / join. */
     boolean nested() default false;
 
+    /**
+     * Marks the field as a JSON/JSONB column, regardless of its Java type.
+     * Useful when the column stores a custom Java object (POJO) serialized
+     * as JSON rather than a generic {@code Map}. When {@code true} and no
+     * explicit {@link #operators()} are given, JSON-specific operators
+     * (e.g. {@code JSON_EXISTS}, {@code JSON_PATH_EQ}, {@code JSON_CONTAINS},
+     * {@code JSON_ARRAY_CONTAINS}) are included by default.
+     */
+    boolean json() default false;
+
     /** Date/time format pattern for {@code Instant}/{@code Timestamp}/{@code LocalDate}... */
     String datePattern() default "";
 

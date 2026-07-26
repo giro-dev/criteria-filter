@@ -30,6 +30,22 @@ public interface FilterInterceptor<T> {
     }
 
     /**
+     * Whether this interceptor is applied automatically to every filter
+     * execution whose entity matches {@link #entityType()} ("global").
+     *
+     * <p>Set to {@code false} to make the interceptor opt-in: it will only
+     * run when explicitly referenced by an endpoint, via
+     * {@code @EnableFilterEndpoint(interceptors = MyInterceptor.class)} or
+     * {@code @FilterSearch(interceptors = MyInterceptor.class)}, or by
+     * overriding {@code AbstractFilterController#interceptors()}. Useful for
+     * variants of the same entity search that need different background
+     * filters (e.g. an internal vs. an external endpoint).
+     */
+    default boolean global() {
+        return true;
+    }
+
+    /**
      * Called before the filter query is executed.
      *
      * @param context Mutable context containing the filter request and metadata
