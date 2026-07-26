@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 
 import java.util.List;
 import java.util.Set;
@@ -82,11 +83,7 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
      */
     private Predicate jsonContains(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         String jsonValue = toJsonString(operands.get(0));
-        return cb.isTrue(
-                cb.function("jsonb_contains", Boolean.class,
-                        path.as(String.class),
-                        cb.literal(jsonValue))
-        );
+        return jsonbOperator(cb, path.as(String.class), "@>", cb.literal(jsonValue));
     }
 
     /**
@@ -94,11 +91,7 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
      */
     private Predicate jsonContainedBy(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         String jsonValue = toJsonString(operands.get(0));
-        return cb.isTrue(
-                cb.function("jsonb_contained_by", Boolean.class,
-                        path.as(String.class),
-                        cb.literal(jsonValue))
-        );
+        return jsonbOperator(cb, path.as(String.class), "<@", cb.literal(jsonValue));
     }
 
     /**
@@ -188,19 +181,11 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
             Expression<String> nestedPath = cb.function("jsonb_extract_path", String.class,
                     path.as(String.class),
                     cb.literal(jsonPath));
-            return cb.isTrue(
-                    cb.function("jsonb_contains", Boolean.class,
-                            nestedPath,
-                            cb.literal(jsonArray))
-            );
+            return jsonbOperator(cb, nestedPath, "@>", cb.literal(jsonArray));
         }
         // Root array: column @> '["value"]'
         String jsonArray = toJsonArray(List.of(operands.get(0)));
-        return cb.isTrue(
-                cb.function("jsonb_contains", Boolean.class,
-                        path.as(String.class),
-                        cb.literal(jsonArray))
-        );
+        return jsonbOperator(cb, path.as(String.class), "@>", cb.literal(jsonArray));
     }
 
     /**
@@ -208,11 +193,7 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
      */
     private Predicate jsonArrayContainsAll(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         String jsonArray = toJsonArray(operands);
-        return cb.isTrue(
-                cb.function("jsonb_contains", Boolean.class,
-                        path.as(String.class),
-                        cb.literal(jsonArray))
-        );
+        return jsonbOperator(cb, path.as(String.class), "@>", cb.literal(jsonArray));
     }
 
     /**
@@ -270,5 +251,20 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
         return java.util.Arrays.stream(values)
                 .map(v -> "\"" + v.replace("\"", "\\\"") + "\"")
                 .collect(Collectors.joining(",", "{", "}"));
+    }
+
+    private Predicate jsonbOperator(CriteriaBuilder cb, Expression<?> left, String operator, Expression<String> right) {
+        HibernateCriteriaBuilder hibernateCriteriaBuilder = requireHibernateCriteriaBuilder(cb);
+        return hibernateCriteriaBuilder.isTrue(
+                hibernateCriteriaBuilder.sql("(? " + operator + " cast(? as jsonb))", Boolean.class, left, right)
+        );
+    }
+
+    private HibernateCriteriaBuilder requireHibernateCriteriaBuilder(CriteriaBuilder cb) {
+        if (cb instanceof HibernateCriteriaBuilder hibernateCriteriaBuilder) {
+            return hibernateCriteriaBuilder;
+        }
+        throw new FilterTranslationException(
+                "PostgresJsonbOperatorHandler requires Hibernate CriteriaBuilder for JSONB containment operators");
     }
 }
