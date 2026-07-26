@@ -2,10 +2,10 @@ package dev.agiro.criteriafilter.metamodel;
 
 import dev.agiro.criteriafilter.annotation.CriteriaFilter;
 import dev.agiro.criteriafilter.annotation.FilterField;
-import dev.agiro.criteriafilter.model.Backend;
 import dev.agiro.criteriafilter.model.Operator;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,27 +31,20 @@ public class EntityFilterMetadataBuilder {
         }
         Class<?> entityType = marker.entity() == Void.class ? annotatedType : marker.entity();
 
+        Iterable<Field> allFields = declaredFields(annotatedType);
+        boolean hasExplicitFields = hasAnyFilterFieldAnnotation(allFields);
+
         Map<String, FieldMetadata> fields = new LinkedHashMap<>();
-        boolean hasExplicitFields = hasAnyFilterFieldAnnotation(annotatedType);
-        
-        for (Field field : declaredFields(annotatedType)) {
+        for (Field field : allFields) {
             FilterField ff = field.getAnnotation(FilterField.class);
-            
-            // If explicit @FilterField annotations exist, only include annotated fields
-            if (hasExplicitFields) {
-                if (ff == null || ff.excluded()) {
-                    continue;
-                }
-            } else {
-                // No explicit annotations: include all non-synthetic, non-static fields
-                if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) ||
-                    field.isSynthetic() ||
-                    (ff != null && ff.excluded())) {
-                    continue;
-                }
+            if (shouldSkip(field, ff, hasExplicitFields)) continue;
+
+            if (entityType != annotatedType && findField(entityType, field.getName()) == null) {
+                throw new IllegalStateException("Filter field '" + field.getName() + "' declared on "
+                        + annotatedType.getName() + " does not exist on entity " + entityType.getName());
             }
-            
-            FieldMetadata metadata = buildField(annotatedType, entityType, field, ff);
+
+            FieldMetadata metadata = buildField(field, ff);
             FieldMetadata previous = fields.putIfAbsent(metadata.logicalName(), metadata);
             if (previous != null) {
                 throw new IllegalStateException("Duplicate logical filter field '"
@@ -60,50 +53,46 @@ public class EntityFilterMetadataBuilder {
         }
         return new EntityFilterMetadata(entityType, marker.backend(), fields);
     }
-    
-    private boolean hasAnyFilterFieldAnnotation(Class<?> type) {
-        for (Field field : declaredFields(type)) {
-            if (field.getAnnotation(FilterField.class) != null) {
-                return true;
-            }
+
+    private static boolean shouldSkip(Field field, FilterField ff, boolean hasExplicitFields) {
+        if (hasExplicitFields) {
+            return ff == null || ff.excluded();
+        }
+        return java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                || field.isSynthetic()
+                || (ff != null && ff.excluded());
+    }
+
+    private static boolean hasAnyFilterFieldAnnotation(Iterable<Field> fields) {
+        for (Field field : fields) {
+            if (field.getAnnotation(FilterField.class) != null) return true;
         }
         return false;
     }
 
-    private FieldMetadata buildField(Class<?> annotatedType, Class<?> entityType,
-                                     Field field, FilterField ff) {
+    private FieldMetadata buildField(Field field, FilterField ff) {
         String javaFieldName = field.getName();
-
-        // Fail-fast: a @FilterField on a DTO must map to a real entity attribute.
-        if (entityType != annotatedType && findField(entityType, javaFieldName) == null) {
-            throw new IllegalStateException("Filter field '" + javaFieldName + "' declared on "
-                    + annotatedType.getName() + " does not exist on entity " + entityType.getName());
-        }
-
-        // Handle case when no @FilterField annotation (auto-discovery mode)
         String logicalName = (ff == null || ff.name().isBlank()) ? javaFieldName : ff.name();
-        boolean explicitJson = ff != null && ff.json();
-        Set<Operator> operators;
-        if (ff != null && ff.operators().length > 0) {
-            operators = EnumSet.copyOf(java.util.Arrays.asList(ff.operators()));
-        } else if (explicitJson) {
-            // @FilterField(json = true) forces JSON operators regardless of Java type
-            // (e.g. a POJO persisted as JSON/JSONB rather than a generic Map).
-            operators = OperatorInference.jsonDefaults();
-        } else {
-            operators = OperatorInference.defaultsFor(field.getType());
-        }
-        String openSearchField = (ff == null || ff.openSearchField().isBlank()) ? logicalName : ff.openSearchField();
-        String hibernateSearchField = (ff == null || ff.hibernateSearchField().isBlank())
-                ? logicalName : ff.hibernateSearchField();
-        String datePattern = (ff == null) ? "" : ff.datePattern();
-        Map<Backend, String> datePatterns = datePatternResolver.resolve(field.getType(), datePattern);
-        boolean nested = (ff != null) && ff.nested();
-        java.time.temporal.ChronoUnit dateTruncate = (ff == null) 
-                ? java.time.temporal.ChronoUnit.MILLIS : ff.dateTruncate();
+        return new FieldMetadata(
+                logicalName,
+                javaFieldName,
+                field.getType(),
+                inferOperators(ff, field.getType()),
+                (ff == null || ff.openSearchField().isBlank()) ? logicalName : ff.openSearchField(),
+                (ff == null || ff.hibernateSearchField().isBlank()) ? logicalName : ff.hibernateSearchField(),
+                ff != null && ff.nested(),
+                datePatternResolver.resolve(field.getType(), ff == null ? "" : ff.datePattern()),
+                ff == null ? java.time.temporal.ChronoUnit.MILLIS : ff.dateTruncate());
+    }
 
-        return new FieldMetadata(logicalName, javaFieldName, field.getType(), operators,
-                openSearchField, hibernateSearchField, nested, datePatterns, dateTruncate);
+    private static Set<Operator> inferOperators(FilterField ff, Class<?> type) {
+        if (ff != null && ff.operators().length > 0) {
+            return EnumSet.copyOf(Arrays.asList(ff.operators()));
+        }
+        if (ff != null && ff.json()) {
+            return OperatorInference.jsonDefaults();
+        }
+        return OperatorInference.defaultsFor(type);
     }
 
     private static Iterable<Field> declaredFields(Class<?> type) {
