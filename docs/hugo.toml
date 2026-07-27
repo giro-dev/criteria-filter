@@ -1,0 +1,31 @@
+# 1. Replace <owner> with your GitHub username or organization.
+# 2. GitHub Actions overrides this at build time with the real Pages URL.
+baseURL = 'https://<owner>.github.io/criteria-filter/'
+locale = 'en-us'
+title = 'criteria-filter'
+theme = 'criteria-docs'
+
+[params]
+  author = 'Agiro'
+  description = 'Dynamic, declarative filtering for Spring Boot and beyond.'
+  github = 'https://github.com/<owner>/criteria-filter'
+  version = '0.1.0-SNAPSHOT'
+
+[menu]
+  [[menu.main]]
+    name = 'Docs'
+    url = '/docs/'
+    weight = 10
+  [[menu.main]]
+    name = 'Demo'
+    url = '/demo/'
+    weight = 20
+  [[menu.main]]
+    name = 'About'
+    url = '/about/'
+    weight = 30
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
