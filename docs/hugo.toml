@@ -8,7 +8,7 @@ theme = 'criteria-docs'
 [params]
   author = 'Agiro'
   description = 'Dynamic, declarative filtering for Spring Boot and beyond.'
-  github = 'https://github.com/<owner>/criteria-filter'
+  github = 'https://github.com/giro-dev/criteria-filter'
   version = '0.1.0-SNAPSHOT'
 
 [menu]
