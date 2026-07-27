@@ -47,6 +47,7 @@ public class Product {
 | `String` | `EQ`, `NE`, `LIKE`, `IN`, `IS_NULL`, `IS_NOT_NULL` |
 | Number | `EQ`, `NE`, `GT`, `GTE`, `LT`, `LTE`, `BETWEEN`, `IN`, `IS_NULL`, `IS_NOT_NULL` |
 | Temporal | `EQ`, `NE`, `GT`, `GTE`, `LT`, `LTE`, `BETWEEN`, `IS_NULL`, `IS_NOT_NULL` |
+| `Map` / `@FilterField(json = true)` | `EQ`, `NE`, `IS_NULL`, `IS_NOT_NULL`, `JSON_EXISTS`, `JSON_PATH_EQ`, `JSON_CONTAINS`, `JSON_ARRAY_CONTAINS` |
 
 ## Request schema
 

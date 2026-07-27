@@ -1,0 +1,34 @@
+{{ define "main" }}
+<section class="hero">
+  <h1>{{ .Site.Title }}</h1>
+  <p class="hero-lead">{{ .Site.Params.description }}</p>
+  <div class="hero-actions">
+    <a class="button primary" href="{{ "/docs/getting-started/quickstart/" | relURL }}">Get Started</a>
+    <a class="button" href="{{ .Site.Params.github }}">View on GitHub</a>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <h3>Declarative Filters</h3>
+    <p>Expose powerful search endpoints with a few annotations. No boilerplate repository methods needed.</p>
+  </div>
+  <div class="feature">
+    <h3>JSONB Ready</h3>
+    <p>Built-in operators for PostgreSQL JSONB, including path equality and array containment.</p>
+  </div>
+  <div class="feature">
+    <h3>Extensible Interceptors</h3>
+    <p>Wire tenant isolation, soft-delete, or security filters globally or per-endpoint.</p>
+  </div>
+</section>
+
+<section class="home-section">
+  <h2>Install</h2>
+  <pre><code class="language-xml">&lt;dependency&gt;
+  &lt;groupId&gt;dev.agiro&lt;/groupId&gt;
+  &lt;artifactId&gt;criteria-filter&lt;/artifactId&gt;
+  &lt;version&gt;{{ .Site.Params.version }}&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</section>
+{{ end }}
