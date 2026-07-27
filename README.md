@@ -74,13 +74,14 @@ Jackson deduces the subtype from the properties present.
 @RestController
 @RequestMapping("/products")
 public class ProductController extends AbstractFilterController<Product> {
+
     private final CriteriaRepositoryRegistry registry;
     private final FilterMetadataRegistry metadataRegistry;
 
-    public ProductController(FilterValidator filterValidator,
-                             FilterInterceptorChain interceptorChain,
-                             CriteriaRepositoryRegistry registry,
-                             FilterMetadataRegistry metadataRegistry) {
+    public ProductController(CriteriaRepositoryRegistry registry,
+                             FilterMetadataRegistry metadataRegistry,
+                             FilterValidator filterValidator,
+                             FilterInterceptorChain interceptorChain) {
         super(filterValidator, interceptorChain);
         this.registry = registry;
         this.metadataRegistry = metadataRegistry;
@@ -108,33 +109,10 @@ criteria-filter:
 
 Auto-configuration registers all beans; just add the dependency.
 
-## Documentation
-
-Full documentation and tutorials are built with [Hugo](https://gohugo.io/) and deployed to GitHub Pages from the `docs/` directory.
-
-```bash
-cd docs
-hugo server --buildDrafts
-```
-
-To publish, enable GitHub Pages in the repository settings and let `.github/workflows/gh-pages.yml` run on push to `main`.
-
-## Demo
-
-A runnable Spring Boot application with PostgreSQL + JSONB examples lives in `criteria-filter-demo/`:
-
-```bash
-cd criteria-filter-demo
-docker compose up -d
-mvn spring-boot:run
-```
-
-Then open `http://localhost:8080/swagger-ui.html` and try the search endpoints.
-
 ## Build
 
 ```bash
-mvn test        # 37 tests (metamodel, validation, JPA translation over H2, controller)
+mvn test        # 14 tests (metamodel, validation, JPA translation over H2, controller)
 mvn package
 ```
 
