@@ -1,0 +1,23 @@
+{{ if .IsHome }}
+<!-- No sidebar on home -->
+{{ else }}
+<aside class="sidebar">
+  <nav>
+    <ul>
+      {{ $current := . }}
+      {{ range .Site.Sections }}
+      <li>
+        <strong>{{ .Title }}</strong>
+        <ul>
+          {{ range .Pages }}
+          <li>
+            <a href="{{ .RelPermalink }}" class="{{ if eq $current . }}active{{ end }}">{{ .Title }}</a>
+          </li>
+          {{ end }}
+        </ul>
+      </li>
+      {{ end }}
+    </ul>
+  </nav>
+</aside>
+{{ end }}

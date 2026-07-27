@@ -47,6 +47,7 @@ public class Product {
 | `String` | `EQ`, `NE`, `LIKE`, `IN`, `IS_NULL`, `IS_NOT_NULL` |
 | Number | `EQ`, `NE`, `GT`, `GTE`, `LT`, `LTE`, `BETWEEN`, `IN`, `IS_NULL`, `IS_NOT_NULL` |
 | Temporal | `EQ`, `NE`, `GT`, `GTE`, `LT`, `LTE`, `BETWEEN`, `IS_NULL`, `IS_NOT_NULL` |
+| `Map` / `@FilterField(json = true)` | `EQ`, `NE`, `IS_NULL`, `IS_NOT_NULL`, `JSON_EXISTS`, `JSON_PATH_EQ`, `JSON_CONTAINS`, `JSON_ARRAY_CONTAINS` |
 
 ## Request schema
 
@@ -72,12 +73,22 @@ Jackson deduces the subtype from the properties present.
 ```java
 @RestController
 @RequestMapping("/products")
-public class ProductController extends AbstractFilterController<Product, Long> {
+public class ProductController extends AbstractFilterController<Product> {
     private final CriteriaRepositoryRegistry registry;
-    public ProductController(CriteriaRepositoryRegistry registry) { this.registry = registry; }
+    private final FilterMetadataRegistry metadataRegistry;
 
-    @Override protected CriteriaRepository<Product, ?> repository() { return registry.resolve(Product.class); }
+    public ProductController(FilterValidator filterValidator,
+                             FilterInterceptorChain interceptorChain,
+                             CriteriaRepositoryRegistry registry,
+                             FilterMetadataRegistry metadataRegistry) {
+        super(filterValidator, interceptorChain);
+        this.registry = registry;
+        this.metadataRegistry = metadataRegistry;
+    }
+
+    @Override protected CriteriaRepository<Product> repository() { return registry.resolve(Product.class); }
     @Override protected Class<Product> entityType() { return Product.class; }
+    @Override protected FilterMetadataRegistry metadataRegistry() { return metadataRegistry; }
 }
 ```
 
@@ -97,10 +108,33 @@ criteria-filter:
 
 Auto-configuration registers all beans; just add the dependency.
 
+## Documentation
+
+Full documentation and tutorials are built with [Hugo](https://gohugo.io/) and deployed to GitHub Pages from the `docs/` directory.
+
+```bash
+cd docs
+hugo server --buildDrafts
+```
+
+To publish, enable GitHub Pages in the repository settings and let `.github/workflows/gh-pages.yml` run on push to `main`.
+
+## Demo
+
+A runnable Spring Boot application with PostgreSQL + JSONB examples lives in `criteria-filter-demo/`:
+
+```bash
+cd criteria-filter-demo
+docker compose up -d
+mvn spring-boot:run
+```
+
+Then open `http://localhost:8080/swagger-ui.html` and try the search endpoints.
+
 ## Build
 
 ```bash
-mvn test        # 14 tests (metamodel, validation, JPA translation over H2, controller)
+mvn test        # 37 tests (metamodel, validation, JPA translation over H2, controller)
 mvn package
 ```
 

@@ -26,6 +26,10 @@ replay_pid*
 # Build output
 target/
 
+# Hugo
+/docs/public/
+/docs/resources/_gen/
+
 # IDE
 .idea/
 *.iml
