@@ -74,14 +74,13 @@ Jackson deduces the subtype from the properties present.
 @RestController
 @RequestMapping("/products")
 public class ProductController extends AbstractFilterController<Product> {
-
     private final CriteriaRepositoryRegistry registry;
     private final FilterMetadataRegistry metadataRegistry;
 
-    public ProductController(CriteriaRepositoryRegistry registry,
-                             FilterMetadataRegistry metadataRegistry,
-                             FilterValidator filterValidator,
-                             FilterInterceptorChain interceptorChain) {
+    public ProductController(FilterValidator filterValidator,
+                             FilterInterceptorChain interceptorChain,
+                             CriteriaRepositoryRegistry registry,
+                             FilterMetadataRegistry metadataRegistry) {
         super(filterValidator, interceptorChain);
         this.registry = registry;
         this.metadataRegistry = metadataRegistry;
@@ -112,7 +111,6 @@ Auto-configuration registers all beans; just add the dependency.
 ## Build
 
 ```bash
-mvn test        # 14 tests (metamodel, validation, JPA translation over H2, controller)
 mvn package
 ```
 
