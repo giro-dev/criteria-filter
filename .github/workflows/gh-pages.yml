@@ -36,7 +36,13 @@ jobs:
           extended: true
 
       - name: Build site
-        run: hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}"
+        run: |
+          BASE_URL="${{ steps.pages.outputs.base_url }}"
+          if [ -z "$BASE_URL" ]; then
+            BASE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+          fi
+          BASE_URL="${BASE_URL%/}/"
+          hugo --gc --minify --baseURL "$BASE_URL"
         working-directory: docs
 
       - name: Upload artifact
