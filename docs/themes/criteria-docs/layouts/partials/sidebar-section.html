@@ -1,8 +1,9 @@
 {{ $section := .section }}
 {{ $current := .current }}
-{{ $active := or (eq $current $section) ($current.IsDescendant $section) }}
+{{ $active := eq $current $section }}
+{{ $ancestor := and (not $active) ($current.IsDescendant $section) }}
 <li>
-  <a class="section-link{{ if $active }} active{{ end }}" href="{{ $section.RelPermalink }}">{{ $section.Title }}</a>
+  <a class="section-link{{ if $active }} active{{ else if $ancestor }} ancestor{{ end }}" href="{{ $section.RelPermalink }}">{{ $section.Title }}</a>
   {{ if or $section.Sections $section.RegularPages }}
   <ul>
     {{ range $section.Sections.ByWeight }}

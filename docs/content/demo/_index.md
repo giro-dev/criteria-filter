@@ -1,7 +1,7 @@
 ---
 title: Demo
 description: Run the included demo application to explore all features.
-weight: 10
+weight: 20
 ---
 
 The `criteria-filter-demo` project is included in the repository under the `criteria-filter-demo/` folder. It demonstrates:

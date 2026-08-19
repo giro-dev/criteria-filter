@@ -1,7 +1,7 @@
 ---
 title: About
 description: The criteria-filter project, its author, and its license.
-weight: 10
+weight: 30
 ---
 
 criteria-filter is a Java library that turns Spring Boot entities into fully searchable REST endpoints without writing repository boilerplate.
