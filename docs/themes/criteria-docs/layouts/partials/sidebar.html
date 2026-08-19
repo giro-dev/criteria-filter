@@ -5,17 +5,8 @@
   <nav>
     <ul>
       {{ $current := . }}
-      {{ range .Site.Sections }}
-      <li>
-        <strong>{{ .Title }}</strong>
-        <ul>
-          {{ range .Pages }}
-          <li>
-            <a href="{{ .RelPermalink }}" class="{{ if eq $current . }}active{{ end }}">{{ .Title }}</a>
-          </li>
-          {{ end }}
-        </ul>
-      </li>
+      {{ range .Site.Sections.ByWeight }}
+      {{ partial "sidebar-section.html" (dict "section" . "current" $current) }}
       {{ end }}
     </ul>
   </nav>

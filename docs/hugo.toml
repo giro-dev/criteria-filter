@@ -1,7 +1,5 @@
-# 1. Replace <owner> with your GitHub username or organization.
-# 2. GitHub Actions overrides this at build time with the real Pages URL.
-baseURL = 'https://<owner>.github.io/criteria-filter/'
-locale = 'en-us'
+baseURL = 'https://giro-dev.github.io/criteria-filter/'
+languageCode = 'en-us'
 title = 'criteria-filter'
 theme = 'criteria-docs'
 
@@ -29,3 +27,6 @@ theme = 'criteria-docs'
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
+  [markup.highlight]
+    noClasses = true
+    style = 'github'

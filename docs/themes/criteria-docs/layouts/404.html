@@ -1,0 +1,10 @@
+{{ define "main" }}
+<article class="doc-article">
+  <h1>Page not found</h1>
+  <p class="lead">The page you requested does not exist.</p>
+  <p>
+    Return to the <a href="{{ .Site.Home.RelPermalink }}">home page</a>
+    or browse the <a href="{{ (.Site.GetPage "/docs").RelPermalink }}">documentation</a>.
+  </p>
+</article>
+{{ end }}

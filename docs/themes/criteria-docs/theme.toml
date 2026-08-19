@@ -1,6 +1,6 @@
 name = "criteria-docs"
 license = "MIT"
-licenselink = "https://github.com/<owner>/criteria-filter/blob/main/LICENSE"
+licenselink = "https://github.com/giro-dev/criteria-filter/blob/main/LICENSE"
 description = "Minimal documentation theme for criteria-filter"
-homepage = "https://github.com/<owner>/criteria-filter"
+homepage = "https://github.com/giro-dev/criteria-filter"
 min_version = "0.112.0"

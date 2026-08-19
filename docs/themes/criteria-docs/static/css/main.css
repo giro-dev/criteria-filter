@@ -73,7 +73,8 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar li { margin: 0.25rem 0; }
-.sidebar strong { display: block; margin-top: 1rem; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.sidebar ul ul { padding-left: 0.75rem; }
+.sidebar .section-link { display: block; margin-top: 1rem; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .sidebar a { display: block; padding: 0.35rem 0.5rem; border-radius: var(--radius); color: var(--fg); }
 .sidebar a.active { background: var(--accent-soft); font-weight: 600; }
 

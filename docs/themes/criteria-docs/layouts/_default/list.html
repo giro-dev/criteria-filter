@@ -8,7 +8,11 @@
     {{ range .Pages }}
     <li>
       <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-      {{ if .Summary }}<p>{{ .Summary }}</p>{{ end }}
+      {{ if .Params.description }}
+      <p>{{ .Params.description }}</p>
+      {{ else if .Summary }}
+      <p>{{ .Summary | plainify | truncate 160 }}</p>
+      {{ end }}
     </li>
     {{ end }}
   </ul>
