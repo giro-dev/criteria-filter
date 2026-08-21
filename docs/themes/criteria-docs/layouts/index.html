@@ -3,7 +3,7 @@
   <h1>{{ .Site.Title }}</h1>
   <p class="hero-lead">{{ .Site.Params.description }}</p>
   <div class="hero-actions">
-    <a class="button primary" href="{{ "/docs/getting-started/quickstart/" | relURL }}">Get Started</a>
+    <a class="button primary" href="{{ (.Site.GetPage "/docs/getting-started/quickstart").RelPermalink }}">Get Started</a>
     <a class="button" href="{{ .Site.Params.github }}">View on GitHub</a>
   </div>
 </section>
@@ -25,10 +25,7 @@
 
 <section class="home-section">
   <h2>Install</h2>
-  <pre><code class="language-xml">&lt;dependency&gt;
-  &lt;groupId&gt;dev.agiro&lt;/groupId&gt;
-  &lt;artifactId&gt;criteria-filter&lt;/artifactId&gt;
-  &lt;version&gt;{{ .Site.Params.version }}&lt;/version&gt;
-&lt;/dependency&gt;</code></pre>
+  {{ $install := printf "<dependency>\n  <groupId>dev.agiro</groupId>\n  <artifactId>criteria-filter</artifactId>\n  <version>%s</version>\n</dependency>" .Site.Params.version }}
+  {{ highlight $install "xml" "" }}
 </section>
 {{ end }}

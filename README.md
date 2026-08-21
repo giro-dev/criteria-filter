@@ -10,6 +10,8 @@ extensibility for ambiguous cases (date formats, per-backend custom fields).
 > backends are stubs (`UnsupportedOperationException`) — the metamodel already
 > resolves per-backend field names and date patterns for them.
 
+[Read the published documentation](https://giro-dev.github.io/criteria-filter/).
+
 ## How it works
 
 1. Annotate a filterable type with `@CriteriaFilter` and its fields with

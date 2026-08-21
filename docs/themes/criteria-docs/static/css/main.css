@@ -73,7 +73,9 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar li { margin: 0.25rem 0; }
-.sidebar strong { display: block; margin-top: 1rem; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.sidebar ul ul { padding-left: 0.75rem; }
+.sidebar .section-link { display: block; margin-top: 1rem; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.sidebar .section-link.ancestor { color: var(--accent); font-weight: 600; }
 .sidebar a { display: block; padding: 0.35rem 0.5rem; border-radius: var(--radius); color: var(--fg); }
 .sidebar a.active { background: var(--accent-soft); font-weight: 600; }
 
@@ -81,6 +83,11 @@ a:hover { text-decoration: underline; }
   flex: 1;
   padding: 2.5rem 3rem;
   max-width: 820px;
+}
+
+.home-content {
+  width: 100%;
+  max-width: none;
 }
 
 @media (max-width: 800px) {
