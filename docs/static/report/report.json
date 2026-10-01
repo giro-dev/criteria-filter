@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0-SNAPSHOT",
-  "generated": "2026-10-01 10:20 UTC",
+  "version": "0.1.0",
+  "generated": "2026-10-01 10:26 UTC",
   "tests": {
     "passed": 200,
     "failed": 0,

@@ -1,4 +1,4 @@
-## criteria-filter 0.1.0-SNAPSHOT — test report
+## criteria-filter 0.1.0 — test report
 
 **200/200 tests passed** · 0 failed · 0 skipped · line coverage **83.2%** · method coverage **82.9%**
 
