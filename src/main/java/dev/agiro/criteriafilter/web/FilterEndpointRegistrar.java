@@ -68,7 +68,8 @@ public class FilterEndpointRegistrar implements SmartInitializingSingleton {
                 repositoryRegistry,
                 metadataRegistry,
                 interceptorChain,
-                java.util.List.of(annotation.interceptors())
+                java.util.List.of(annotation.interceptors()),
+                beanType
         );
 
         handlerMapping.registerEndpoint(

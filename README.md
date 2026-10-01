@@ -1,150 +1,221 @@
 # criteria-filter
 
-[![Maven Central](https://img.shields.io/maven-central/v/dev.agiro/criteria-filter?label=maven%20central)](https://central.sonatype.com/artifact/dev.agiro/criteria-filter)
 [![Release](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Frelease.json)](https://github.com/giro-dev/criteria-filter/releases/latest)
 [![CI](https://github.com/giro-dev/criteria-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/giro-dev/criteria-filter/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Ftests.json)](https://giro-dev.github.io/criteria-filter/report/)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Fcoverage.json)](https://giro-dev.github.io/criteria-filter/report/)
-[![Function coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Ffunction-coverage.json)](https://giro-dev.github.io/criteria-filter/report/)
-[![Maintained](https://img.shields.io/badge/maintained-yes-brightgreen)](https://github.com/giro-dev/criteria-filter/commits/main)
 [![Java](https://img.shields.io/badge/java-21-orange?logo=openjdk)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/spring%20boot-3.3-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Internal library that translates a single JSON filter request into queries for
-multiple backends. It replaces per-request reflection over entity fields with an
-**annotation-driven metamodel resolved once at startup**, while keeping
-extensibility for ambiguous cases (date formats, per-backend custom fields).
+Turn a JSON filter tree into validated Spring Data JPA queries with two
+annotations. criteria-filter gives APIs nested AND/OR filters, type-aware
+operators, pagination, generated schema endpoints, and Swagger integration —
+without repository query boilerplate.
 
-> **MVP status:** the **JPA** backend (translation to Spring Data
-> `Specification`) is fully implemented. `OpenSearch` and `Hibernate Search`
-> backends are stubs (`UnsupportedOperationException`) — the metamodel already
-> resolves per-backend field names and date patterns for them.
+[Documentation](https://giro-dev.github.io/criteria-filter/) ·
+[Demo](criteria-filter-demo/) ·
+[Test report](https://giro-dev.github.io/criteria-filter/report/)
 
-[Read the published documentation](https://giro-dev.github.io/criteria-filter/) ·
-[latest test & coverage report](https://giro-dev.github.io/criteria-filter/report/) ·
-[how releases work](https://giro-dev.github.io/criteria-filter/docs/releasing/).
+## Why criteria-filter?
 
-## How it works
+| Feature | What you get |
+|---|---|
+| Zero-boilerplate endpoints | `@EnableFilterEndpoint` generates `POST …/search` and `GET …/search/schema` |
+| Safe, type-aware validation | Unknown fields, wrong operators, and bad arity become uniform `400`s |
+| Nested boolean filters | Arbitrary AND/OR trees with operators inferred from Java types |
+| Startup metamodel | Fields resolved once at boot — no per-request reflection, fail-fast on typos |
+| Pagination built in | `page`/`size` params, `FilterResult` with `content`, `totalHits`, `hasMore` |
+| OpenAPI/Swagger discovery | Dynamic endpoints show up in `/v3/api-docs`, inheriting the controller's `@Tag` |
+| Interceptors | Global cross-cutting filters plus opt-in per-endpoint interceptors |
+| PostgreSQL JSONB | `jsonb` containment, key-existence, and path operators on `Map` fields |
 
-1. Annotate a filterable type with `@CriteriaFilter` and its fields with
-   `@FilterField`. No attribute is mandatory — defaults are inferred from the
-   Java type; explicit attributes override point by point.
-2. At startup, `CriteriaFilterBeanInitializer` (a `ContextRefreshedEvent`
-   listener) scans the configured packages, reflects over each entity **once**,
-   and builds an immutable `EntityFilterMetadata`. A field pointing at a
-   non-existent attribute **fails fast** at boot.
-3. At request time, `FilterValidator` checks the `FilterRequest` against the
-   metamodel (unknown field / unsupported operator / wrong arity) so a
-   `400 Bad Request` is identical regardless of backend.
-4. `CriteriaRepositoryRegistry` resolves the fixed backend repository per entity;
-   client code never branches on the backend.
+## Quick start
 
-## Annotations
+### 1. Add the dependency
+
+```xml
+<dependency>
+    <groupId>dev.agiro</groupId>
+    <artifactId>criteria-filter</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+Requires Java 21+ and Spring Boot 3.3.x. Auto-configuration registers everything.
+
+### 2. Mark an entity as filterable
 
 ```java
 @Entity
-@CriteriaFilter(backend = Backend.JPA)
+@CriteriaFilter
 public class Product {
-    @Id @FilterField Long id;
-    @FilterField String name;                 // -> EQ, NE, LIKE, IN (inferred)
-    @FilterField BigDecimal price;            // -> EQ, GT, LT, BETWEEN, ...
-    @FilterField Instant createdAt;           // date pattern resolved per backend
-    @FilterField(operators = {Operator.EQ}) boolean active; // explicit override
-    String internalNote;                      // not filterable (no @FilterField)
+    @Id
+    private Long id;
+    private String name;
+    private String category;
+    private BigDecimal price;
+    private boolean active;
 }
 ```
 
-### Operator inference by type
+With no `@FilterField`, all non-static fields are exposed. Once any field has
+`@FilterField`, it becomes an allow-list and only annotated fields are exposed.
 
-| Java type | Default operators |
+### 3. Publish the endpoint
+
+```java
+@RestController
+@RequestMapping("/api/products")
+@EnableFilterEndpoint(entity = Product.class)
+@Tag(name = "Products")
+public class ProductController {
+}
+```
+
+| Endpoint | Purpose |
 |---|---|
-| `String` | `EQ`, `NE`, `LIKE`, `IN`, `IS_NULL`, `IS_NOT_NULL` |
-| Number | `EQ`, `NE`, `GT`, `GTE`, `LT`, `LTE`, `BETWEEN`, `IN`, `IS_NULL`, `IS_NOT_NULL` |
-| Temporal | `EQ`, `NE`, `GT`, `GTE`, `LT`, `LTE`, `BETWEEN`, `IS_NULL`, `IS_NOT_NULL` |
-| `Map` / `@FilterField(json = true)` | `EQ`, `NE`, `IS_NULL`, `IS_NOT_NULL`, `JSON_EXISTS`, `JSON_PATH_EQ`, `JSON_CONTAINS`, `JSON_ARRAY_CONTAINS` |
+| `POST /api/products/search` | Paginated filtered search |
+| `GET /api/products/search/schema` | Fields and operators clients may use |
 
-## Request schema
+When springdoc is installed, the generated operations appear under **Products**
+in Swagger UI.
 
-The `FilterRequest` schema is shared across every endpoint (document once as a
-reusable OpenAPI component). A node is either a **condition** or a **group**;
-Jackson deduces the subtype from the properties present.
+## Try it
 
-Semantics worth knowing:
+```bash
+curl -X POST 'http://localhost:8080/api/products/search?page=0&size=20' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "filter": {
+      "and": [
+        { "field": "active", "operator": "EQ", "value": true },
+        { "field": "price", "operator": "BETWEEN", "values": [10, 100] }
+      ]
+    }
+  }'
+```
 
-- `LIKE` is a case-insensitive *contains*; `%`, `_` and `\` in the value match literally.
-- An empty `AND` group matches everything, an empty `OR` group matches nothing.
-- A group must use exactly one of `and`, `or` or `combinator`/`filters`; a condition
-  must use either `value` or `values`. Null operands are rejected — use `IS_NULL`.
-- Boolean values must be `true`/`false` (or those strings); `NaN`/`Infinity` are rejected.
-- Association fields (`@ManyToOne`) are compared by the target entity's identifier.
+```json
+{
+  "content": [ { "id": 7, "name": "Java Mug", "price": 24.90 } ],
+  "totalHits": 1,
+  "hasMore": false
+}
+```
+
+Return everything — an empty AND matches all (an empty OR matches none):
+
+```json
+{ "filter": { "and": [] } }
+```
+
+## Filter language
+
+A filter node is either a **condition** (`field`, `operator`, `value`/`values`)
+or a **group** combining children with `and`, `or`, or `combinator`/`filters`.
 
 ```json
 {
   "filter": {
-    "combinator": "AND",
-    "filters": [
-      { "field": "name", "operator": "LIKE", "value": "java" },
-      { "field": "price", "operator": "BETWEEN", "values": [10, 40] },
-      { "field": "category", "operator": "IN", "values": ["BOOK", "TOY"] }
+    "and": [
+      { "field": "category", "operator": "IN", "values": ["BOOK", "TOY"] },
+      {
+        "or": [
+          { "field": "name", "operator": "LIKE", "value": "java" },
+          { "field": "price", "operator": "LT", "value": 15 }
+        ]
+      }
     ]
   }
 }
 ```
 
-## Controllers
+| Category | Operators |
+|---|---|
+| Standard comparison | `EQ` `NE` `GT` `GTE` `LT` `LTE` |
+| Text / set / range | `LIKE` `IN` `BETWEEN` |
+| Nullability | `IS_NULL` `IS_NOT_NULL` |
+| PostgreSQL JSONB | `JSON_CONTAINS` `JSON_CONTAINED_BY` `JSON_EXISTS` `JSON_EXISTS_ANY` `JSON_EXISTS_ALL` `JSON_PATH_EQ` `JSON_PATH_LIKE` `JSON_ARRAY_CONTAINS` `JSON_ARRAY_CONTAINS_ALL` `JSON_ARRAY_CONTAINS_ANY` |
+
+`LIKE` is a case-insensitive *contains*; `%`, `_`, and `\` in the value match
+literally.
+
+## Control the filter surface
 
 ```java
-@RestController
-@RequestMapping("/products")
-public class ProductController extends AbstractFilterController<Product> {
-    private final CriteriaRepositoryRegistry registry;
-    private final FilterMetadataRegistry metadataRegistry;
+@Entity
+@CriteriaFilter
+public class Product {
+    @FilterField(name = "q")                 // exposed as "q" instead of "name"
+    private String name;
 
-    public ProductController(FilterValidator filterValidator,
-                             FilterInterceptorChain interceptorChain,
-                             CriteriaRepositoryRegistry registry,
-                             FilterMetadataRegistry metadataRegistry) {
-        super(filterValidator, interceptorChain);
-        this.registry = registry;
-        this.metadataRegistry = metadataRegistry;
-    }
+    @FilterField(operators = {Operator.EQ, Operator.IN})
+    private String category;                 // restrict allowed operators
 
-    @Override protected CriteriaRepository<Product> repository() { return registry.resolve(Product.class); }
-    @Override protected Class<Product> entityType() { return Product.class; }
-    @Override protected FilterMetadataRegistry metadataRegistry() { return metadataRegistry; }
+    @FilterField(excluded = true)
+    private String internalNote;             // never filterable
 }
 ```
 
-`AbstractFilterController` exposes `POST /search` returning
-`FilterResult<T>(content, totalHits, hasMore)`.
+- With no `@FilterField` attributes, operators are inferred from the field's
+  Java type (e.g. strings get `EQ`, `NE`, `LIKE`, `IN`, null checks).
+- Adding `@FilterField` to any field turns exposure into an allow-list;
+  `excluded = true` hides a field even inside the allow-list.
+
+## More ways to expose a search
+
+| Approach | When to use |
+|---|---|
+| `@EnableFilterEndpoint` | Zero-boilerplate recommended default — generates both endpoints |
+| `@FilterSearch` / `@FilterSchema` | Custom paths and method-level control inside your own controller |
+| `AbstractFilterController<T>` | Inheritance-based customization of search behavior |
+
+See the [demo](criteria-filter-demo/) and
+[docs](https://giro-dev.github.io/criteria-filter/) for full examples.
+
+## Interceptors
+
+Global interceptors run on every search for cross-cutting concerns like tenant
+isolation or soft delete. Endpoint interceptors are opt-in per endpoint — e.g.
+an external, active-only view of customers:
+
+```java
+@FilterSearch(entity = Customer.class, interceptors = ExternalCustomerInterceptor.class)
+```
+
+Details: [interceptors](docs/content/docs/features/interceptors.md).
 
 ## Configuration
 
 ```yaml
 criteria-filter:
-  # Packages scanned for @CriteriaFilter. Empty = Spring Boot auto-config packages.
+  # Optional: defaults to the Spring Boot auto-configuration packages.
   base-packages:
     - com.example.domain
-  # Default pattern for offset-less types (LocalDateTime / Timestamp).
   default-date-time-pattern: "yyyy-MM-dd'T'HH:mm:ss"
-  # Request limits enforced by FilterValidator (requests above them get HTTP 400).
-  max-depth: 32          # group nesting depth
-  max-conditions: 1000   # conditions in the whole tree
-  max-values: 1000       # values in a single condition (IN, JSON_EXISTS_ANY, ...)
+  max-depth: 32        # group nesting depth
+  max-conditions: 1000 # conditions in the whole tree
+  max-values: 1000     # values in a single condition (IN, JSON_EXISTS_ANY, ...)
 ```
 
-Auto-configuration registers all beans; just add the dependency.
+## Backend status
 
-## Build
+| Backend | Status |
+|---|---|
+| Spring Data JPA | Ready — translates to `Specification` |
+| PostgreSQL JSONB | Ready — JPA native predicates on `Map`/`jsonb` fields |
+| OpenSearch | Planned — metamodel prepared, repository throws `UnsupportedOperationException` |
+| Hibernate Search | Planned — metamodel prepared, repository throws `UnsupportedOperationException` |
+
+## Demo and development
 
 ```bash
-mvn package
+mvn test                                   # run the suite
+cd criteria-filter-demo && mvn spring-boot:run   # start the demo app
 ```
 
-Requires **Java 21**. Built on Spring Boot 3.
+- [Demo README](criteria-filter-demo/)
+- [Published documentation](https://giro-dev.github.io/criteria-filter/)
 
-## Roadmap
-
-See the open decisions in the design: OpenSearch / Hibernate Search backends,
-relation/nested field mapping, dynamic per-request backend selection.
+Licensed under [MIT](LICENSE).

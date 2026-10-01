@@ -7,6 +7,7 @@ import dev.agiro.criteriafilter.model.FilterRequest;
 import dev.agiro.criteriafilter.repository.FilterResult;
 import dev.agiro.criteriafilter.sample.Product;
 import dev.agiro.criteriafilter.web.FilterSchemaResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -68,6 +69,16 @@ class FilterEndpointAnnotationTest {
                 .andExpect(jsonPath("$.entity").value("Product"));
     }
 
+    @Test
+    void enableFilterEndpointIsPublishedInOpenApi() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/annotated-products/search'].post").exists())
+                .andExpect(jsonPath("$.paths['/annotated-products/search/schema'].get").exists())
+                .andExpect(jsonPath("$.paths['/annotated-products/search'].post.tags[0]").value("Products"))
+                .andExpect(jsonPath("$.paths['/annotated-products/search/schema'].get.tags[0]").value("Products"));
+    }
+
     @TestConfiguration
     static class Config {
 
@@ -84,6 +95,7 @@ class FilterEndpointAnnotationTest {
 
     @RestController
     @RequestMapping("/annotated-products")
+    @Tag(name = "Products")
     @EnableFilterEndpoint(entity = Product.class)
     static class AnnotatedProductController {
     }

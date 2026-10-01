@@ -9,6 +9,7 @@ import dev.agiro.criteriafilter.repository.CriteriaRepositoryRegistry;
 import dev.agiro.criteriafilter.repository.FilterResult;
 import dev.agiro.criteriafilter.repository.PageRequest;
 import dev.agiro.criteriafilter.validation.FilterValidator;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,13 +31,23 @@ public class FilterEndpointAdapter {
     private final FilterInterceptorChain interceptorChain;
     @SuppressWarnings("rawtypes")
     private final List<Class<? extends FilterInterceptor>> interceptors;
+    private final Class<?> sourceControllerType;
 
     public FilterEndpointAdapter(Class<?> entityType,
                                   FilterValidator filterValidator,
                                   CriteriaRepositoryRegistry repositoryRegistry,
                                   FilterMetadataRegistry metadataRegistry,
                                   FilterInterceptorChain interceptorChain) {
-        this(entityType, filterValidator, repositoryRegistry, metadataRegistry, interceptorChain, List.of());
+        this(entityType, filterValidator, repositoryRegistry, metadataRegistry, interceptorChain, List.of(), null);
+    }
+
+    public FilterEndpointAdapter(Class<?> entityType,
+                                  FilterValidator filterValidator,
+                                  CriteriaRepositoryRegistry repositoryRegistry,
+                                  FilterMetadataRegistry metadataRegistry,
+                                  FilterInterceptorChain interceptorChain,
+                                  List<Class<? extends FilterInterceptor>> interceptors) {
+        this(entityType, filterValidator, repositoryRegistry, metadataRegistry, interceptorChain, interceptors, null);
     }
 
     @SuppressWarnings("rawtypes")
@@ -45,15 +56,26 @@ public class FilterEndpointAdapter {
                                   CriteriaRepositoryRegistry repositoryRegistry,
                                   FilterMetadataRegistry metadataRegistry,
                                   FilterInterceptorChain interceptorChain,
-                                  List<Class<? extends FilterInterceptor>> interceptors) {
+                                  List<Class<? extends FilterInterceptor>> interceptors,
+                                  Class<?> sourceControllerType) {
         this.entityType = entityType;
         this.filterValidator = filterValidator;
         this.repositoryRegistry = repositoryRegistry;
         this.metadataRegistry = metadataRegistry;
         this.interceptorChain = interceptorChain;
         this.interceptors = interceptors;
+        this.sourceControllerType = sourceControllerType;
     }
 
+    /** Source controller that declared the dynamic endpoint, or {@code null}. */
+    public Class<?> sourceControllerType() {
+        return sourceControllerType;
+    }
+
+    @Operation(
+            summary = "Search with filters",
+            description = "Executes a paginated search using the supplied dynamic filter tree."
+    )
     @SuppressWarnings("unchecked")
     public ResponseEntity<FilterResult<Object>> search(
             @RequestBody @Valid FilterRequest request,
@@ -67,6 +89,10 @@ public class FilterEndpointAdapter {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(
+            summary = "Get filter schema",
+            description = "Returns the fields and operators available for dynamic filtering."
+    )
     public ResponseEntity<FilterSchemaResponse> schema() {
         return ResponseEntity.ok(FilterSchemaResponse.from(metadataRegistry.require(entityType)));
     }
