@@ -35,8 +35,11 @@ public enum Operator {
     JSON_PATH_EQ(Arity.PAIR),
     /** JSONB path value like: {@code column->>'path' LIKE '%value%'} */
     JSON_PATH_LIKE(Arity.PAIR),
-    /** JSONB array contains value: {@code column @> '["value"]'} */
-    JSON_ARRAY_CONTAINS(Arity.SINGLE),
+    /**
+     * JSONB array contains value: {@code column @> '["value"]'}, or
+     * {@code column->'path' @> '["value"]'} when given {@code [path, value]}.
+     */
+    JSON_ARRAY_CONTAINS(Arity.SINGLE_OR_PAIR),
     /** JSONB array contains all values: {@code column @> '["v1","v2"]'} */
     JSON_ARRAY_CONTAINS_ALL(Arity.MULTI),
     /** JSONB array contains any value */
@@ -49,6 +52,8 @@ public enum Operator {
         SINGLE,
         /** Exactly two operands (e.g. {@code BETWEEN}). */
         PAIR,
+        /** One or two operands (e.g. {@code JSON_ARRAY_CONTAINS} with an optional path). */
+        SINGLE_OR_PAIR,
         /** One or more operands (e.g. {@code IN}). */
         MULTI
     }

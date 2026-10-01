@@ -1,5 +1,7 @@
 package dev.agiro.criteriafilter.repository;
 
+import dev.agiro.criteriafilter.exception.InvalidPageRequestException;
+
 /**
  * Backend-agnostic pagination request. Deliberately not
  * {@code org.springframework.data.domain.Pageable}: OpenSearch pagination
@@ -9,10 +11,14 @@ public record PageRequest(int page, int size) {
 
     public PageRequest {
         if (page < 0) {
-            throw new IllegalArgumentException("page must be >= 0");
+            throw new InvalidPageRequestException("page must be >= 0");
         }
         if (size < 1) {
-            throw new IllegalArgumentException("size must be >= 1");
+            throw new InvalidPageRequestException("size must be >= 1");
+        }
+        // Repositories fetch size + 1 rows starting at page * size; both must fit in an int.
+        if (size == Integer.MAX_VALUE || (long) page * size > Integer.MAX_VALUE) {
+            throw new InvalidPageRequestException("page * size exceeds the maximum supported offset");
         }
     }
 

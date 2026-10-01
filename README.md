@@ -57,6 +57,15 @@ The `FilterRequest` schema is shared across every endpoint (document once as a
 reusable OpenAPI component). A node is either a **condition** or a **group**;
 Jackson deduces the subtype from the properties present.
 
+Semantics worth knowing:
+
+- `LIKE` is a case-insensitive *contains*; `%`, `_` and `\` in the value match literally.
+- An empty `AND` group matches everything, an empty `OR` group matches nothing.
+- A group must use exactly one of `and`, `or` or `combinator`/`filters`; a condition
+  must use either `value` or `values`. Null operands are rejected — use `IS_NULL`.
+- Boolean values must be `true`/`false` (or those strings); `NaN`/`Infinity` are rejected.
+- Association fields (`@ManyToOne`) are compared by the target entity's identifier.
+
 ```json
 {
   "filter": {
@@ -106,6 +115,10 @@ criteria-filter:
     - com.example.domain
   # Default pattern for offset-less types (LocalDateTime / Timestamp).
   default-date-time-pattern: "yyyy-MM-dd'T'HH:mm:ss"
+  # Request limits enforced by FilterValidator (requests above them get HTTP 400).
+  max-depth: 32          # group nesting depth
+  max-conditions: 1000   # conditions in the whole tree
+  max-values: 1000       # values in a single condition (IN, JSON_EXISTS_ANY, ...)
 ```
 
 Auto-configuration registers all beans; just add the dependency.

@@ -1,6 +1,7 @@
 package dev.agiro.criteriafilter.web;
 
 import dev.agiro.criteriafilter.exception.FilterTranslationException;
+import dev.agiro.criteriafilter.exception.InvalidPageRequestException;
 import dev.agiro.criteriafilter.exception.UnknownFieldException;
 import dev.agiro.criteriafilter.exception.UnsupportedOperatorException;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,12 @@ public class FilterExceptionHandler {
     public ResponseEntity<FilterErrorResponse> onTranslation(FilterTranslationException ex) {
         return ResponseEntity.badRequest()
                 .body(FilterErrorResponse.of("INVALID_FILTER", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(InvalidPageRequestException.class)
+    public ResponseEntity<FilterErrorResponse> onInvalidPage(InvalidPageRequestException ex) {
+        return ResponseEntity.badRequest()
+                .body(FilterErrorResponse.of("INVALID_PAGE", ex.getMessage(), null));
     }
 
     @ExceptionHandler(UnsupportedOperationException.class)
