@@ -1,5 +1,6 @@
 # criteria-filter
 
+[![Maven Central](https://img.shields.io/maven-central/v/dev.agiro/criteria-filter?label=maven%20central)](https://central.sonatype.com/artifact/dev.agiro/criteria-filter)
 [![Release](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Frelease.json)](https://github.com/giro-dev/criteria-filter/releases/latest)
 [![CI](https://github.com/giro-dev/criteria-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/giro-dev/criteria-filter/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Ftests.json)](https://giro-dev.github.io/criteria-filter/report/)

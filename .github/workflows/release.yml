@@ -15,6 +15,10 @@ on:
           - patch
           - major
         default: minor
+      publish_to_central:
+        description: Publish the release to Maven Central
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -42,6 +46,28 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+          server-id: central
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_PASSWORD
+          gpg-private-key: ${{ inputs.publish_to_central && secrets.GPG_PRIVATE_KEY || '' }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Check Maven Central secrets
+        if: inputs.publish_to_central
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          missing=0
+          for name in OSSRH_USERNAME OSSRH_PASSWORD GPG_PRIVATE_KEY GPG_PASSPHRASE; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Repository secret $name is not set (or run with publish_to_central=false)"
+              missing=1
+            fi
+          done
+          exit "$missing"
 
       - name: Resolve versions
         id: versions
@@ -109,6 +135,14 @@ jobs:
       - name: Build demo
         run: ../mvnw -B -DskipTests package
         working-directory: criteria-filter-demo
+
+      - name: Publish to Maven Central
+        if: inputs.publish_to_central
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: ./mvnw -B -Prelease -DskipTests deploy
 
       - name: Commit release, tag and bump to next SNAPSHOT
         env:
