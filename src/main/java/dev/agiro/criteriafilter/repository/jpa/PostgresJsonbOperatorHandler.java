@@ -1,5 +1,8 @@
 package dev.agiro.criteriafilter.repository.jpa;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.agiro.criteriafilter.exception.FilterTranslationException;
 import dev.agiro.criteriafilter.metamodel.FieldMetadata;
 import dev.agiro.criteriafilter.model.Operator;
@@ -41,6 +44,9 @@ import java.util.stream.Collectors;
  */
 public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
 
+    private static final ObjectMapper JSON = new ObjectMapper()
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+
     private static final Set<Operator> SUPPORTED = Set.of(
             Operator.JSON_CONTAINS,
             Operator.JSON_CONTAINED_BY,
@@ -78,127 +84,62 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
         };
     }
 
-    /**
-     * JSONB contains: {@code column @> '{"key": "value"}'::jsonb}
-     */
     private Predicate jsonContains(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
-        String jsonValue = toJsonString(operands.get(0));
-        return jsonbOperator(cb, path.as(String.class), "@>", cb.literal(jsonValue));
+        return jsonbOperator(cb, path, "@>", cb.literal(toJsonDocument(operands.get(0))));
     }
 
-    /**
-     * JSONB contained by: {@code column <@ '{"key": "value"}'::jsonb}
-     */
     private Predicate jsonContainedBy(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
-        String jsonValue = toJsonString(operands.get(0));
-        return jsonbOperator(cb, path.as(String.class), "<@", cb.literal(jsonValue));
+        return jsonbOperator(cb, path, "<@", cb.literal(toJsonDocument(operands.get(0))));
     }
 
-    /**
-     * JSONB key exists: {@code column ? 'key'}
-     */
     private Predicate jsonExists(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         String key = operands.get(0).toString();
-        return cb.isTrue(
-                cb.function("jsonb_exists", Boolean.class,
-                        path.as(String.class),
-                        cb.literal(key))
-        );
+        return cb.isTrue(cb.function("jsonb_exists", Boolean.class, path, cb.literal(key)));
     }
 
-    /**
-     * JSONB any key exists: {@code column ?| array['k1','k2']}
-     */
     private Predicate jsonExistsAny(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
-        String[] keys = operands.stream()
-                .map(Object::toString)
-                .toArray(String[]::new);
-        return cb.isTrue(
-                cb.function("jsonb_exists_any", Boolean.class,
-                        path.as(String.class),
-                        cb.literal(toPostgresArray(keys)))
-        );
+        return cb.isTrue(cb.function("jsonb_exists_any", Boolean.class,
+                path, cb.literal(toPostgresArray(operands))));
     }
 
-    /**
-     * JSONB all keys exist: {@code column ?& array['k1','k2']}
-     */
     private Predicate jsonExistsAll(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
-        String[] keys = operands.stream()
-                .map(Object::toString)
-                .toArray(String[]::new);
-        return cb.isTrue(
-                cb.function("jsonb_exists_all", Boolean.class,
-                        path.as(String.class),
-                        cb.literal(toPostgresArray(keys)))
-        );
+        return cb.isTrue(cb.function("jsonb_exists_all", Boolean.class,
+                path, cb.literal(toPostgresArray(operands))));
     }
 
-    /**
-     * JSONB path extraction + equals: {@code column->>'path' = 'value'}
-     * Operands: [path, value]
-     */
     private Predicate jsonPathEquals(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         if (operands.size() != 2) {
             throw new FilterTranslationException("JSON_PATH_EQ requires exactly 2 values: [jsonPath, value]");
         }
         String jsonPath = operands.get(0).toString();
         String value = operands.get(1).toString();
-
-        Expression<String> extracted = extractJsonPath(cb, path, jsonPath);
-        return cb.equal(extracted, value);
+        return cb.equal(extractJsonPath(cb, path, jsonPath, "jsonb_extract_path_text"), value);
     }
 
-    /**
-     * JSONB path extraction + like: {@code column->>'path' LIKE '%value%'}
-     * Operands: [path, pattern]
-     */
     private Predicate jsonPathLike(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         if (operands.size() != 2) {
             throw new FilterTranslationException("JSON_PATH_LIKE requires exactly 2 values: [jsonPath, pattern]");
         }
         String jsonPath = operands.get(0).toString();
         String pattern = operands.get(1).toString();
-
-        Expression<String> extracted = extractJsonPath(cb, path, jsonPath);
-        return cb.like(cb.lower(extracted), "%" + pattern.toLowerCase() + "%");
+        Expression<String> extracted = extractJsonPath(cb, path, jsonPath, "jsonb_extract_path_text");
+        return cb.like(cb.lower(extracted), LikePatterns.containsIgnoreCase(pattern), LikePatterns.ESCAPE);
     }
 
-    /**
-     * JSONB array contains single value.
-     * Two modes:
-     * 1. Single operand: column @> '["value"]'::jsonb (array at root)
-     * 2. Two operands [path, value]: column->'path' @> '["value"]'::jsonb (nested array)
-     */
     private Predicate jsonArrayContains(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         if (operands.size() == 2) {
             // Nested array: column->'path' @> '["value"]'
-            String jsonPath = operands.get(0).toString();
-            String value = operands.get(1).toString();
-            String jsonArray = toJsonArray(List.of(value));
-            
-            // Extract the nested path first, then check containment
-            Expression<String> nestedPath = cb.function("jsonb_extract_path", String.class,
-                    path.as(String.class),
-                    cb.literal(jsonPath));
-            return jsonbOperator(cb, nestedPath, "@>", cb.literal(jsonArray));
+            Expression<String> nested = extractJsonPath(cb, path, operands.get(0).toString(), "jsonb_extract_path");
+            return jsonbOperator(cb, nested, "@>", cb.literal(toJson(List.of(operands.get(1)))));
         }
         // Root array: column @> '["value"]'
-        String jsonArray = toJsonArray(List.of(operands.get(0)));
-        return jsonbOperator(cb, path.as(String.class), "@>", cb.literal(jsonArray));
+        return jsonbOperator(cb, path, "@>", cb.literal(toJson(List.of(operands.get(0)))));
     }
 
-    /**
-     * JSONB array contains all values: {@code column @> '["v1","v2"]'::jsonb}
-     */
     private Predicate jsonArrayContainsAll(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
-        String jsonArray = toJsonArray(operands);
-        return jsonbOperator(cb, path.as(String.class), "@>", cb.literal(jsonArray));
+        return jsonbOperator(cb, path, "@>", cb.literal(toJson(operands)));
     }
 
-    /**
-     * JSONB array contains any value - uses OR of individual contains checks.
-     */
     private Predicate jsonArrayContainsAny(CriteriaBuilder cb, Path<?> path, List<Object> operands) {
         Predicate[] predicates = operands.stream()
                 .map(val -> jsonArrayContains(cb, path, List.of(val)))
@@ -206,57 +147,51 @@ public class PostgresJsonbOperatorHandler implements JpaOperatorHandler {
         return cb.or(predicates);
     }
 
-    /**
-     * Extracts a text value from JSONB using ->> operator.
-     * Supports nested paths like "address.city" → column->'address'->>'city'
-     */
-    private Expression<String> extractJsonPath(CriteriaBuilder cb, Path<?> path, String jsonPath) {
+    private Expression<String> extractJsonPath(CriteriaBuilder cb, Path<?> path, String jsonPath,
+                                               String function) {
         String[] segments = jsonPath.split("\\.");
-        if (segments.length == 1) {
-            // Simple path: column->>'key'
-            return cb.function("jsonb_extract_path_text", String.class,
-                    path.as(String.class),
-                    cb.literal(segments[0]));
-        } else {
-            // Nested path: use jsonb_extract_path_text with variadic args
-            Expression<?>[] args = new Expression<?>[segments.length + 1];
-            args[0] = path.as(String.class);
-            for (int i = 0; i < segments.length; i++) {
-                args[i + 1] = cb.literal(segments[i]);
-            }
-            return cb.function("jsonb_extract_path_text", String.class, args);
+        Expression<?>[] args = new Expression<?>[segments.length + 1];
+        args[0] = path;
+        for (int i = 0; i < segments.length; i++) {
+            args[i + 1] = cb.literal(segments[i]);
         }
+        return cb.function(function, String.class, args);
     }
 
-    private String toJsonString(Object value) {
+    /**
+     * Strings that look like a JSON object/array are parsed (and rejected if
+     * malformed); any other value is serialized as a JSON document.
+     */
+    private String toJsonDocument(Object value) {
         if (value instanceof String s && (s.startsWith("{") || s.startsWith("["))) {
-            return s; // Already JSON
+            try {
+                return JSON.readTree(s).toString();
+            } catch (JsonProcessingException e) {
+                throw new FilterTranslationException("Invalid JSON value: " + s, e);
+            }
         }
-        // Wrap in quotes for simple values
-        return "\"" + value.toString().replace("\"", "\\\"") + "\"";
+        return toJson(value);
     }
 
-    private String toJsonArray(List<Object> values) {
+    private String toJson(Object value) {
+        try {
+            return JSON.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new FilterTranslationException("Cannot serialize value as JSON: " + value, e);
+        }
+    }
+
+    private String toPostgresArray(List<Object> values) {
         return values.stream()
-                .map(v -> {
-                    if (v instanceof Number) {
-                        return v.toString();
-                    }
-                    return "\"" + v.toString().replace("\"", "\\\"") + "\"";
-                })
-                .collect(Collectors.joining(",", "[", "]"));
-    }
-
-    private String toPostgresArray(String[] values) {
-        return java.util.Arrays.stream(values)
-                .map(v -> "\"" + v.replace("\"", "\\\"") + "\"")
+                .map(v -> "\"" + v.toString().replace("\\", "\\\\").replace("\"", "\\\"") + "\"")
                 .collect(Collectors.joining(",", "{", "}"));
     }
 
     private Predicate jsonbOperator(CriteriaBuilder cb, Expression<?> left, String operator, Expression<String> right) {
         HibernateCriteriaBuilder hibernateCriteriaBuilder = requireHibernateCriteriaBuilder(cb);
         return hibernateCriteriaBuilder.isTrue(
-                hibernateCriteriaBuilder.sql("(? " + operator + " cast(? as jsonb))", Boolean.class, left, right)
+                hibernateCriteriaBuilder.sql("(cast(? as jsonb) " + operator + " cast(? as jsonb))",
+                        Boolean.class, left, right)
         );
     }
 

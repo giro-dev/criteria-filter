@@ -7,11 +7,14 @@ import dev.agiro.criteriafilter.model.Backend;
 import dev.agiro.criteriafilter.model.FilterCondition;
 import dev.agiro.criteriafilter.model.FilterGroup;
 import dev.agiro.criteriafilter.model.FilterNode;
+import dev.agiro.criteriafilter.model.LogicalOperator;
 import dev.agiro.criteriafilter.model.Operator;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.IdentifiableType;
+import jakarta.persistence.metamodel.SingularAttribute;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -71,7 +74,7 @@ public class JpaSpecificationTranslator {
                 children.add(buildPredicate(child, metadata, root, cb));
             }
             if (children.isEmpty()) {
-                return cb.conjunction();
+                return group.combinator() == LogicalOperator.OR ? cb.disjunction() : cb.conjunction();
             }
             Predicate[] array = children.toArray(new Predicate[0]);
             return switch (group.combinator()) {
@@ -98,19 +101,32 @@ public class JpaSpecificationTranslator {
             return customHandler.handle(operator, path, operands, field, cb);
         }
 
+        if (operator == Operator.IS_NULL) {
+            return cb.isNull(path);
+        }
+        if (operator == Operator.IS_NOT_NULL) {
+            return cb.isNotNull(path);
+        }
+
+        // Associations are compared by their identifier.
+        Class<?> type = field.type();
+        SingularAttribute<?, ?> id = identifierOf(path);
+        if (id != null) {
+            path = path.get(id.getName());
+            type = id.getJavaType();
+        }
+
         // Standard operators
         return switch (operator) {
-            case IS_NULL -> cb.isNull(path);
-            case IS_NOT_NULL -> cb.isNotNull(path);
-            case EQ -> cb.equal(path, coerceSingle(operands, field, operator));
-            case NE -> cb.notEqual(path, coerceSingle(operands, field, operator));
-            case LIKE -> like(cb, path, coerceSingle(operands, field, operator));
-            case IN -> in(path, coerceAll(operands, field, operator));
-            case GT -> cb.greaterThan(comparable(path), comparable(coerceSingle(operands, field, operator)));
-            case GTE -> cb.greaterThanOrEqualTo(comparable(path), comparable(coerceSingle(operands, field, operator)));
-            case LT -> cb.lessThan(comparable(path), comparable(coerceSingle(operands, field, operator)));
-            case LTE -> cb.lessThanOrEqualTo(comparable(path), comparable(coerceSingle(operands, field, operator)));
-            case BETWEEN -> between(cb, path, operands, field);
+            case EQ -> cb.equal(path, coerceSingle(operands, type, operator));
+            case NE -> cb.notEqual(path, coerceSingle(operands, type, operator));
+            case LIKE -> like(cb, path, coerceSingle(operands, type, operator));
+            case IN -> in(path, coerceAll(operands, type, operator));
+            case GT -> cb.greaterThan(comparable(path), comparable(coerceSingle(operands, type, operator)));
+            case GTE -> cb.greaterThanOrEqualTo(comparable(path), comparable(coerceSingle(operands, type, operator)));
+            case LT -> cb.lessThan(comparable(path), comparable(coerceSingle(operands, type, operator)));
+            case LTE -> cb.lessThanOrEqualTo(comparable(path), comparable(coerceSingle(operands, type, operator)));
+            case BETWEEN -> between(cb, path, operands, type);
             default -> throw new FilterTranslationException(
                     "Unsupported operator: " + operator + ". Register a JpaOperatorHandler to support it.");
         };
@@ -118,7 +134,7 @@ public class JpaSpecificationTranslator {
 
     private Predicate like(CriteriaBuilder cb, Path<?> path, Object value) {
         return cb.like(cb.lower(path.as(String.class)),
-                "%" + value.toString().toLowerCase() + "%");
+                LikePatterns.containsIgnoreCase(value.toString()), LikePatterns.ESCAPE);
     }
 
     @SuppressWarnings("unchecked")
@@ -129,30 +145,39 @@ public class JpaSpecificationTranslator {
         return ((Path<Object>) path).in(values);
     }
 
-    private Predicate between(CriteriaBuilder cb, Path<?> path, List<Object> operands, FieldMetadata field) {
+    private static SingularAttribute<?, ?> identifierOf(Path<?> path) {
+        if (path.getModel() instanceof SingularAttribute<?, ?> attribute
+                && attribute.getType() instanceof IdentifiableType<?> target
+                && target.hasSingleIdAttribute()) {
+            return target.getId(target.getIdType().getJavaType());
+        }
+        return null;
+    }
+
+    private Predicate between(CriteriaBuilder cb, Path<?> path, List<Object> operands, Class<?> type) {
         if (operands.size() != 2) {
             throw new FilterTranslationException("BETWEEN requires exactly 2 values, got " + operands.size());
         }
-        Comparable<Object> low = comparable(ValueCoercion.coerce(operands.get(0), field.type()));
-        Comparable<Object> high = comparable(ValueCoercion.coerce(operands.get(1), field.type()));
+        Comparable<Object> low = comparable(ValueCoercion.coerce(operands.get(0), type));
+        Comparable<Object> high = comparable(ValueCoercion.coerce(operands.get(1), type));
         return cb.between(comparable(path), low, high);
     }
 
-    private Object coerceSingle(List<Object> operands, FieldMetadata field, Operator operator) {
+    private Object coerceSingle(List<Object> operands, Class<?> type, Operator operator) {
         if (operands.size() != 1) {
             throw new FilterTranslationException(
                     operator + " requires exactly 1 value, got " + operands.size());
         }
-        return ValueCoercion.coerce(operands.get(0), field.type());
+        return ValueCoercion.coerce(operands.get(0), type);
     }
 
-    private List<Object> coerceAll(List<Object> operands, FieldMetadata field, Operator operator) {
+    private List<Object> coerceAll(List<Object> operands, Class<?> type, Operator operator) {
         if (operands.isEmpty()) {
             throw new FilterTranslationException(operator + " requires at least 1 value");
         }
         List<Object> coerced = new ArrayList<>(operands.size());
         for (Object operand : operands) {
-            coerced.add(ValueCoercion.coerce(operand, field.type()));
+            coerced.add(ValueCoercion.coerce(operand, type));
         }
         return coerced;
     }

@@ -69,8 +69,9 @@ public class CriteriaFilterAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public FilterValidator filterValidator(FilterMetadataRegistry registry) {
-        return new FilterValidator(registry);
+    public FilterValidator filterValidator(FilterMetadataRegistry registry, CriteriaFilterProperties properties) {
+        return new FilterValidator(registry, properties.getMaxDepth(), properties.getMaxConditions(),
+                properties.getMaxValues());
     }
 
     @Bean

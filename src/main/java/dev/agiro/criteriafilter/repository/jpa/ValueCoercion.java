@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -18,6 +20,9 @@ import java.util.UUID;
  */
 final class ValueCoercion {
 
+    /** Upper bound for integer digits and fractional digits of arbitrary-precision operands. */
+    static final int MAX_NUMERIC_DIGITS = 1000;
+
     private ValueCoercion() {
     }
 
@@ -26,8 +31,12 @@ final class ValueCoercion {
         if (value == null) {
             return null;
         }
-        if (targetType.isInstance(value)) {
+        if (targetType.isInstance(value) && !(value instanceof BigDecimal || value instanceof BigInteger)) {
             return value;
+        }
+        if ((value instanceof Map<?, ?> || value instanceof Collection<?>) && isScalar(targetType)) {
+            throw new FilterTranslationException(
+                    "Expected a single " + targetType.getSimpleName() + " value but got '" + value + "'");
         }
         try {
             if (targetType == String.class) {
@@ -37,7 +46,7 @@ final class ValueCoercion {
                 return Enum.valueOf((Class<? extends Enum>) targetType, value.toString());
             }
             if (targetType == Boolean.class || targetType == boolean.class) {
-                return (value instanceof Boolean b) ? b : Boolean.valueOf(value.toString());
+                return (value instanceof Boolean b) ? b : parseBoolean(value);
             }
             if (targetType == UUID.class) {
                 return UUID.fromString(value.toString());
@@ -72,18 +81,49 @@ final class ValueCoercion {
             return Byte.valueOf(s);
         }
         if (targetType == Double.class || targetType == double.class) {
-            return Double.valueOf(s);
+            return requireFinite(Double.valueOf(s), value);
         }
         if (targetType == Float.class || targetType == float.class) {
-            return Float.valueOf(s);
+            return requireFinite(Float.valueOf(s), value);
         }
         if (targetType == BigDecimal.class) {
-            return new BigDecimal(s);
+            return requireBounded(new BigDecimal(s), value);
         }
         if (targetType == BigInteger.class) {
-            return new BigInteger(s);
+            return requireBounded(new BigDecimal(s).toBigIntegerExact(), value);
         }
         return value;
+    }
+
+    private static Boolean parseBoolean(Object value) {
+        String s = value.toString().trim();
+        if (s.equalsIgnoreCase("true")) {
+            return Boolean.TRUE;
+        }
+        if (s.equalsIgnoreCase("false")) {
+            return Boolean.FALSE;
+        }
+        throw new FilterTranslationException("Cannot convert '" + value + "' to Boolean");
+    }
+
+    private static <N extends Number> N requireFinite(N number, Object original) {
+        if (Double.isNaN(number.doubleValue()) || Double.isInfinite(number.doubleValue())) {
+            throw new FilterTranslationException("Non-finite number '" + original + "' is not supported");
+        }
+        return number;
+    }
+
+    private static <N extends Number> N requireBounded(N number, Object original) {
+        BigDecimal decimal = number instanceof BigInteger i ? new BigDecimal(i) : (BigDecimal) number;
+        if (decimal.precision() - decimal.scale() > MAX_NUMERIC_DIGITS || decimal.scale() > MAX_NUMERIC_DIGITS) {
+            throw new FilterTranslationException("Number '" + original + "' exceeds the supported precision");
+        }
+        return number;
+    }
+
+    private static boolean isScalar(Class<?> type) {
+        return type == String.class || type.isEnum() || type == Boolean.class || type == boolean.class
+                || type == UUID.class || isNumeric(type) || isTemporal(type);
     }
 
     private static Object coerceTemporal(Object value, Class<?> targetType) {

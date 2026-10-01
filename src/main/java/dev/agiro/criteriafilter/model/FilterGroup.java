@@ -42,6 +42,12 @@ public final class FilterGroup implements FilterNode {
             @JsonProperty("and") List<FilterNode> and,
             @JsonProperty("or") List<FilterNode> or) {
 
+        int styles = (and != null ? 1 : 0) + (or != null ? 1 : 0)
+                + (combinator != null || filters != null ? 1 : 0);
+        if (styles > 1) {
+            throw new IllegalArgumentException(
+                    "A filter group must use exactly one of 'and', 'or' or 'combinator'/'filters'");
+        }
         if (and != null) {
             return new FilterGroup(LogicalOperator.AND, and);
         }

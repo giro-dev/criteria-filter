@@ -1,10 +1,12 @@
 package dev.agiro.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.agiro.criteriafilter.annotation.CriteriaFilter;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "brands")
 @CriteriaFilter
