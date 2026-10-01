@@ -1,5 +1,6 @@
 package dev.agiro.criteriafilter.interceptor;
 
+import dev.agiro.criteriafilter.repository.AggregationResult;
 import dev.agiro.criteriafilter.repository.FilterResult;
 
 /**
@@ -14,6 +15,11 @@ import dev.agiro.criteriafilter.repository.FilterResult;
  *
  * <p>Interceptors are executed in order (by {@link org.springframework.core.annotation.Order}).
  * The chain can be short-circuited by returning a result from {@link #preFilter}.
+ *
+ * <p>Aggregations ({@code POST /search/aggregate}) run through the same
+ * interceptors: by default {@link #preAggregate} delegates to
+ * {@link #preFilter}, so background filters (tenant isolation, soft-delete,
+ * active-only...) also restrict aggregated data without any extra code.
  *
  * @param <T> Entity type this interceptor applies to
  */
@@ -63,6 +69,32 @@ public interface FilterInterceptor<T> {
      * @return The (possibly modified) result
      */
     default FilterResult<T> postFilter(FilterContext<T> context, FilterResult<T> result) {
+        return result;
+    }
+
+    /**
+     * Called before an aggregation query is executed. The context's
+     * {@link FilterContext#request()} holds the aggregation filter and
+     * {@link FilterContext#aggregation()} the full aggregation request.
+     *
+     * <p>Defaults to {@link #preFilter}, so filters added there apply to
+     * aggregations too. If {@code preFilter} short-circuits, the aggregation
+     * fails closed and returns {@link AggregationResult#empty()}, since a
+     * {@link FilterResult} cannot be turned into aggregates. Override to
+     * customise.
+     *
+     * @return {@code null} to continue, or an {@link AggregationResult} to short-circuit
+     */
+    default AggregationResult preAggregate(FilterContext<T> context) {
+        return preFilter(context) == null ? null : AggregationResult.empty();
+    }
+
+    /**
+     * Called after an aggregation query is executed.
+     *
+     * @return The (possibly modified) result
+     */
+    default AggregationResult postAggregate(FilterContext<T> context, AggregationResult result) {
         return result;
     }
 }

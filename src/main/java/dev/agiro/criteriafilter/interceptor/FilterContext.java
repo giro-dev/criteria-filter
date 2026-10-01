@@ -1,5 +1,6 @@
 package dev.agiro.criteriafilter.interceptor;
 
+import dev.agiro.criteriafilter.model.AggregationRequest;
 import dev.agiro.criteriafilter.model.FilterCondition;
 import dev.agiro.criteriafilter.model.FilterGroup;
 import dev.agiro.criteriafilter.model.FilterNode;
@@ -27,11 +28,37 @@ public class FilterContext<T> {
     private PageRequest pageRequest;
     private final Map<String, Object> attributes = new HashMap<>();
     private final List<FilterNode> additionalFilters = new ArrayList<>();
+    private final AggregationRequest aggregation;
 
     public FilterContext(Class<T> entityType, FilterRequest request, PageRequest pageRequest) {
+        this(entityType, request, pageRequest, null);
+    }
+
+    private FilterContext(Class<T> entityType, FilterRequest request, PageRequest pageRequest,
+                          AggregationRequest aggregation) {
         this.entityType = entityType;
         this.request = request;
         this.pageRequest = pageRequest;
+        this.aggregation = aggregation;
+    }
+
+    /**
+     * Context for an aggregation: {@link #request()} wraps the aggregation
+     * filter and {@link #pageRequest()} is a placeholder first page (aggregations
+     * are not paginated).
+     */
+    public static <T> FilterContext<T> forAggregation(Class<T> entityType, AggregationRequest aggregation) {
+        return new FilterContext<>(entityType, aggregation.filterRequest(), new PageRequest(0, 1), aggregation);
+    }
+
+    /** The aggregation request, or {@code null} for a regular search. */
+    public AggregationRequest aggregation() {
+        return aggregation;
+    }
+
+    /** Whether this context belongs to an aggregation rather than a search. */
+    public boolean isAggregation() {
+        return aggregation != null;
     }
 
     public Class<T> entityType() {

@@ -63,7 +63,26 @@ public class JpaSpecificationTranslator {
     }
 
     public <T> Specification<T> toSpecification(FilterNode node, EntityFilterMetadata metadata) {
-        return (root, query, cb) -> buildPredicate(node, metadata, root, cb);
+        return (root, query, cb) -> toPredicate(node, metadata, root, cb);
+    }
+
+    /**
+     * Builds the predicate for {@code node} directly, for use in any
+     * {@code CriteriaQuery} (entity, count or tuple query).
+     */
+    public Predicate toPredicate(FilterNode node, EntityFilterMetadata metadata,
+                                 Root<?> root, CriteriaBuilder cb) {
+        return buildPredicate(node, metadata, root, cb);
+    }
+
+    /**
+     * Resolves the JPA path of a field. Associations resolve to the target
+     * entity's identifier, matching how conditions compare them.
+     */
+    public Path<?> resolveValuePath(FieldMetadata field, Root<?> root) {
+        Path<?> path = resolvePath(root, field.fieldFor(Backend.JPA));
+        SingularAttribute<?, ?> id = identifierOf(path);
+        return id != null ? path.get(id.getName()) : path;
     }
 
     private Predicate buildPredicate(FilterNode node, EntityFilterMetadata metadata,

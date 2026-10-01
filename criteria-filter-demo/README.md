@@ -31,6 +31,7 @@ Classic inheritance-based approach for exposing filter endpoints.
 **Endpoints:**
 - `POST /api/products/search` - Search products with filters
 - `GET /api/products/search/schema` - Get available filter fields
+- `POST /api/products/search/aggregate` - Grouped aggregations (SUM/AVG/MIN/MAX/COUNT/COUNT_DISTINCT)
 
 ### 2. @EnableFilterEndpoint (Brands)
 Annotation-based automatic endpoint registration at class level.
@@ -47,6 +48,7 @@ public class BrandController {
 **Endpoints:**
 - `POST /api/brands/search` - Search brands with filters
 - `GET /api/brands/search/schema` - Get available filter fields
+- `POST /api/brands/search/aggregate` - Grouped aggregations
 
 ### 3. @FilterSearch/@FilterSchema (Orders)
 Method-level annotations for maximum flexibility.
@@ -129,6 +131,24 @@ POST /api/orders/filter
   }
 }
 ```
+
+### Aggregations (products per category)
+```json
+POST /api/products/search/aggregate
+{
+  "filter": {"field": "price", "operator": "GT", "value": 100},
+  "groupBy": ["category"],
+  "aggregations": [
+    {"field": "price", "function": "SUM", "alias": "totalPrice"},
+    {"field": "price", "function": "AVG", "alias": "avgPrice"},
+    {"field": "stock", "function": "MAX", "alias": "maxStock"},
+    {"field": "brand", "function": "COUNT_DISTINCT", "alias": "brands"},
+    {"function": "COUNT", "alias": "n"}
+  ]
+}
+```
+Returns `{"rows": [{"category": "...", "totalPrice": ..., "avgPrice": ..., "maxStock": ..., "brands": ..., "n": ...}, ...]}`.
+The global `ActiveOnlyInterceptor` applies here too, so only active products are aggregated.
 
 ### BETWEEN operator
 ```json

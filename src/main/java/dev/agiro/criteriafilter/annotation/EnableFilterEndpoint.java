@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * Enables filter search endpoints on an existing Spring MVC controller class.
  *
- * <p>Auto-registers {@code POST /search} and {@code GET /search/schema}
+ * <p>Auto-registers {@code POST /search}, {@code POST /search/aggregate} and {@code GET /search/schema}
  * relative to the class-level {@code @RequestMapping} path, without requiring
  * the controller to extend {@link dev.agiro.criteriafilter.web.AbstractFilterController}.
  *
@@ -28,6 +28,7 @@ import java.lang.annotation.Target;
  * <p>This registers:
  * <ul>
  *   <li>{@code POST /products/search}</li>
+ *   <li>{@code POST /products/search/aggregate}</li>
  *   <li>{@code GET /products/search/schema}</li>
  * </ul>
  */
@@ -48,8 +49,14 @@ public @interface EnableFilterEndpoint {
     /** Whether to register the schema endpoint. */
     boolean includeSchema() default true;
 
+    /** Path segment for the aggregation endpoint. Default: "search/aggregate". */
+    String aggregatePath() default "search/aggregate";
+
+    /** Whether to register the aggregation endpoint. */
+    boolean includeAggregate() default true;
+
     /**
-     * Opt-in interceptors to apply to this endpoint's search, in addition to
+     * Opt-in interceptors to apply to this endpoint's search and aggregation, in addition to
      * any globally-applicable ones. Only takes effect for interceptor beans
      * whose {@link FilterInterceptor#global()} returns {@code false}; global
      * interceptors already run automatically and do not need to be listed

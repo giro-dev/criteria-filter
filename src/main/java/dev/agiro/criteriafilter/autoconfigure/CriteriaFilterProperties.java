@@ -1,5 +1,6 @@
 package dev.agiro.criteriafilter.autoconfigure;
 
+import dev.agiro.criteriafilter.repository.jpa.JpaCriteriaRepository;
 import dev.agiro.criteriafilter.validation.FilterValidator;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -31,6 +32,15 @@ public class CriteriaFilterProperties {
 
     /** Maximum number of values in a single condition (e.g. {@code IN}). */
     private int maxValues = FilterValidator.DEFAULT_MAX_VALUES;
+
+    /** Maximum number of {@code groupBy} fields in an aggregation request. */
+    private int maxGroupBy = FilterValidator.DEFAULT_MAX_GROUP_BY;
+
+    /** Maximum number of aggregate columns in an aggregation request. */
+    private int maxAggregations = FilterValidator.DEFAULT_MAX_AGGREGATIONS;
+
+    /** Maximum number of rows (groups) an aggregation may return. */
+    private int maxAggregationGroups = JpaCriteriaRepository.DEFAULT_MAX_AGGREGATION_GROUPS;
 
     public List<String> getBasePackages() {
         return basePackages;
@@ -70,5 +80,29 @@ public class CriteriaFilterProperties {
 
     public void setMaxValues(int maxValues) {
         this.maxValues = maxValues;
+    }
+
+    public int getMaxGroupBy() {
+        return maxGroupBy;
+    }
+
+    public void setMaxGroupBy(int maxGroupBy) {
+        this.maxGroupBy = maxGroupBy;
+    }
+
+    public int getMaxAggregations() {
+        return maxAggregations;
+    }
+
+    public void setMaxAggregations(int maxAggregations) {
+        this.maxAggregations = maxAggregations;
+    }
+
+    public int getMaxAggregationGroups() {
+        return maxAggregationGroups;
+    }
+
+    public void setMaxAggregationGroups(int maxAggregationGroups) {
+        this.maxAggregationGroups = maxAggregationGroups;
     }
 }

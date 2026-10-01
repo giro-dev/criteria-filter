@@ -1,18 +1,24 @@
 package dev.agiro.criteriafilter.validation;
 
 import dev.agiro.criteriafilter.exception.FilterTranslationException;
+import dev.agiro.criteriafilter.exception.UnsupportedAggregationException;
 import dev.agiro.criteriafilter.exception.UnsupportedOperatorException;
 import dev.agiro.criteriafilter.metamodel.EntityFilterMetadata;
 import dev.agiro.criteriafilter.metamodel.FieldMetadata;
 import dev.agiro.criteriafilter.metamodel.FilterMetadataRegistry;
+import dev.agiro.criteriafilter.model.AggregateFunction;
+import dev.agiro.criteriafilter.model.AggregationRequest;
+import dev.agiro.criteriafilter.model.AggregationSpec;
 import dev.agiro.criteriafilter.model.FilterCondition;
 import dev.agiro.criteriafilter.model.FilterGroup;
 import dev.agiro.criteriafilter.model.FilterNode;
 import dev.agiro.criteriafilter.model.FilterRequest;
 import dev.agiro.criteriafilter.model.Operator;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Validates a {@link FilterRequest} against the entity metamodel before it
@@ -24,11 +30,16 @@ public class FilterValidator {
     public static final int DEFAULT_MAX_DEPTH = 32;
     public static final int DEFAULT_MAX_CONDITIONS = 1000;
     public static final int DEFAULT_MAX_VALUES = 1000;
+    public static final int DEFAULT_MAX_GROUP_BY = 16;
+    public static final int DEFAULT_MAX_AGGREGATIONS = 64;
+    public static final int MAX_ALIAS_LENGTH = 128;
 
     private final FilterMetadataRegistry registry;
     private final int maxDepth;
     private final int maxConditions;
     private final int maxValues;
+    private final int maxGroupBy;
+    private final int maxAggregations;
 
     public FilterValidator(FilterMetadataRegistry registry) {
         this(registry, DEFAULT_MAX_DEPTH, DEFAULT_MAX_CONDITIONS, DEFAULT_MAX_VALUES);
@@ -40,10 +51,21 @@ public class FilterValidator {
      * @param maxValues     maximum number of operands in a single condition
      */
     public FilterValidator(FilterMetadataRegistry registry, int maxDepth, int maxConditions, int maxValues) {
+        this(registry, maxDepth, maxConditions, maxValues, DEFAULT_MAX_GROUP_BY, DEFAULT_MAX_AGGREGATIONS);
+    }
+
+    /**
+     * @param maxGroupBy      maximum number of {@code groupBy} fields in an aggregation
+     * @param maxAggregations maximum number of aggregate columns in an aggregation
+     */
+    public FilterValidator(FilterMetadataRegistry registry, int maxDepth, int maxConditions, int maxValues,
+                           int maxGroupBy, int maxAggregations) {
         this.registry = registry;
         this.maxDepth = maxDepth;
         this.maxConditions = maxConditions;
         this.maxValues = maxValues;
+        this.maxGroupBy = maxGroupBy;
+        this.maxAggregations = maxAggregations;
     }
 
     public void validate(FilterRequest request, Class<?> entityType) {
@@ -52,6 +74,98 @@ public class FilterValidator {
             throw new FilterTranslationException("Filter request must contain a filter node");
         }
         validateNode(request.filter(), metadata, 1, new int[1]);
+    }
+
+    /**
+     * Validates an {@link AggregationRequest}: the filter exactly like
+     * {@link #validate(FilterRequest, Class)}, then group-by fields, aggregate
+     * fields, function/type compatibility and result aliases.
+     */
+    public void validateAggregation(AggregationRequest request, Class<?> entityType) {
+        EntityFilterMetadata metadata = registry.require(entityType);
+        if (request == null) {
+            throw new FilterTranslationException("Aggregation request must not be null");
+        }
+        validateNode(request.filter(), metadata, 1, new int[1]);
+
+        List<String> groupBy = request.groupBy();
+        if (groupBy.size() > maxGroupBy) {
+            throw new FilterTranslationException(
+                    "Aggregation exceeds the maximum of " + maxGroupBy + " groupBy fields");
+        }
+        Set<String> keys = new HashSet<>();
+        for (String field : groupBy) {
+            if (field == null || field.isBlank()) {
+                throw new FilterTranslationException("groupBy contains an empty field name");
+            }
+            metadata.require(field); // throws UnknownFieldException
+            if (!keys.add(field)) {
+                throw new FilterTranslationException("groupBy field '" + field + "' is listed more than once");
+            }
+        }
+
+        List<AggregationSpec> aggregations = request.aggregations();
+        if (aggregations == null || aggregations.isEmpty()) {
+            throw new FilterTranslationException("Aggregation request must contain at least one aggregation");
+        }
+        if (aggregations.size() > maxAggregations) {
+            throw new FilterTranslationException(
+                    "Aggregation exceeds the maximum of " + maxAggregations + " aggregations");
+        }
+        for (AggregationSpec spec : aggregations) {
+            validateSpec(spec, metadata);
+            String alias = spec.resolvedAlias();
+            if (alias.length() > MAX_ALIAS_LENGTH || alias.indexOf('\u0000') >= 0) {
+                throw new FilterTranslationException("Aggregation alias must be at most "
+                        + MAX_ALIAS_LENGTH + " characters and contain no NUL character");
+            }
+            if (!keys.add(alias)) {
+                throw new FilterTranslationException("Aggregation alias '" + alias
+                        + "' is not unique (it clashes with another alias or a groupBy field)");
+            }
+        }
+    }
+
+    private void validateSpec(AggregationSpec spec, EntityFilterMetadata metadata) {
+        if (spec == null) {
+            throw new FilterTranslationException("Aggregation must not be null");
+        }
+        AggregateFunction function = spec.function();
+        if (function == null) {
+            throw new FilterTranslationException("Aggregation is missing a function");
+        }
+        if (spec.field() == null || spec.field().isBlank()) {
+            if (!function.fieldOptional()) {
+                throw new FilterTranslationException("Aggregate function '" + function + "' requires a field");
+            }
+            return;
+        }
+        FieldMetadata field = metadata.require(spec.field()); // throws UnknownFieldException
+        Class<?> type = boxed(field.type());
+        switch (function) {
+            case SUM, AVG -> {
+                if (!Number.class.isAssignableFrom(type)) {
+                    throw new UnsupportedAggregationException(spec.field(), function,
+                            "requires a numeric field, but the field is " + type.getSimpleName());
+                }
+            }
+            case MIN, MAX -> {
+                if (!Comparable.class.isAssignableFrom(type)) {
+                    throw new UnsupportedAggregationException(spec.field(), function,
+                            "requires a comparable field, but the field is " + type.getSimpleName());
+                }
+            }
+            case COUNT, COUNT_DISTINCT -> {
+                // any type
+            }
+        }
+    }
+
+    private static Class<?> boxed(Class<?> type) {
+        if (!type.isPrimitive()) {
+            return type;
+        }
+        return java.lang.invoke.MethodType.methodType(type).wrap().returnType();
     }
 
     private void validateNode(FilterNode node, EntityFilterMetadata metadata, int depth, int[] conditions) {

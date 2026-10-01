@@ -10,6 +10,7 @@ The `criteria-filter-demo` project is included in the repository under the `crit
 - JSONB operators with `Customer`
 - Global and opt-in interceptors
 - `@EnableFilterEndpoint` and `@FilterSearch`
+- Grouped aggregations via `POST /api/products/search/aggregate`
 
 ## Quick run
 

@@ -57,10 +57,12 @@ public class FilterEndpointRegistrar implements SmartInitializingSingleton {
         String basePath = resolveBasePath(beanType);
         String searchPath = basePath + "/" + annotation.searchPath();
         String schemaPath = basePath + "/" + annotation.schemaPath();
+        String aggregatePath = basePath + "/" + annotation.aggregatePath();
 
         // Avoid double slashes and trailing slashes
         searchPath = normalize(searchPath);
         schemaPath = normalize(schemaPath);
+        aggregatePath = normalize(aggregatePath);
 
         FilterEndpointAdapter adapter = new FilterEndpointAdapter(
                 annotation.entity(),
@@ -74,6 +76,7 @@ public class FilterEndpointRegistrar implements SmartInitializingSingleton {
         handlerMapping.registerEndpoint(
                 searchPath,
                 annotation.includeSchema() ? schemaPath : null,
+                annotation.includeAggregate() ? aggregatePath : null,
                 adapter
         );
     }
