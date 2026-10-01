@@ -1,0 +1,107 @@
+{
+  "version": "0.1.0-SNAPSHOT",
+  "generated": "2026-10-01 10:20 UTC",
+  "tests": {
+    "passed": 200,
+    "failed": 0,
+    "skipped": 0,
+    "total": 200
+  },
+  "coverage": {
+    "line": 83.19088319088318,
+    "method": 82.91666666666667,
+    "branch": 70.75471698113208
+  },
+  "features": [
+    {
+      "name": "Filter model & JSON parsing",
+      "status": "passed",
+      "counts": {
+        "passed": 20,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "Validation & request limits",
+      "status": "passed",
+      "counts": {
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "Metamodel & annotations",
+      "status": "passed",
+      "counts": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "Type coercion",
+      "status": "passed",
+      "counts": {
+        "passed": 46,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "JPA operators & translation",
+      "status": "passed",
+      "counts": {
+        "passed": 36,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "PostgreSQL JSONB operators",
+      "status": "passed",
+      "counts": {
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "Pagination",
+      "status": "passed",
+      "counts": {
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "Web endpoints & interceptors",
+      "status": "passed",
+      "counts": {
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "Security & hostile input",
+      "status": "passed",
+      "counts": {
+        "passed": 29,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "Performance budgets",
+      "status": "passed",
+      "counts": {
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  ]
+}

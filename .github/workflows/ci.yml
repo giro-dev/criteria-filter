@@ -32,6 +32,13 @@ jobs:
       - name: Test and install library
         run: ./mvnw -B install
 
+      - name: Generate test report
+        if: success() || failure()
+        run: |
+          version=$(./mvnw -B -q help:evaluate -Dexpression=project.version -DforceStdout)
+          python3 .github/scripts/test_report.py --version "$version" --out target/test-report
+          cat target/test-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+
       - name: Build demo
         run: ../mvnw -B -DskipTests package
         working-directory: criteria-filter-demo
@@ -40,6 +47,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: surefire-reports
-          path: target/surefire-reports/
+          name: test-reports
+          path: |
+            target/test-report/
+            target/surefire-reports/
+            target/site/jacoco/
           if-no-files-found: warn

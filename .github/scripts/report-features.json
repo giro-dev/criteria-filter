@@ -1,0 +1,85 @@
+{
+  "features": [
+    {
+      "name": "Filter model & JSON parsing",
+      "tests": [
+        "FilterRequestJsonTest",
+        "FilterGroupNestedTest"
+      ]
+    },
+    {
+      "name": "Validation & request limits",
+      "tests": [
+        "FilterValidatorTest",
+        "FilterValidatorHardeningTest"
+      ]
+    },
+    {
+      "name": "Metamodel & annotations",
+      "tests": [
+        "EntityFilterMetadataBuilderTest"
+      ]
+    },
+    {
+      "name": "Type coercion",
+      "tests": [
+        "ValueCoercionTest"
+      ]
+    },
+    {
+      "name": "JPA operators & translation",
+      "tests": [
+        "JpaOperatorCoverageIntegrationTest",
+        "JpaCriteriaRepositoryIntegrationTest",
+        "LikePatternsTest"
+      ]
+    },
+    {
+      "name": "PostgreSQL JSONB operators",
+      "tests": [
+        "PostgresJsonbIntegrationTest"
+      ]
+    },
+    {
+      "name": "Pagination",
+      "tests": [
+        "PageRequestTest"
+      ]
+    },
+    {
+      "name": "Web endpoints & interceptors",
+      "tests": [
+        "ProductControllerTest",
+        "FilterEndpointAnnotationTest",
+        "FilterInterceptorTest"
+      ]
+    },
+    {
+      "name": "Security & hostile input",
+      "tests": [
+        "FilterSecurityWebTest"
+      ]
+    },
+    {
+      "name": "Performance budgets",
+      "tests": [
+        "FilterPerformanceBudgetTest"
+      ]
+    }
+  ],
+  "modules": {
+    "dev.agiro.criteriafilter": "Core",
+    "dev.agiro.criteriafilter.annotation": "Annotations",
+    "dev.agiro.criteriafilter.autoconfigure": "Auto-configuration",
+    "dev.agiro.criteriafilter.exception": "Exceptions",
+    "dev.agiro.criteriafilter.interceptor": "Interceptors",
+    "dev.agiro.criteriafilter.metamodel": "Metamodel",
+    "dev.agiro.criteriafilter.model": "Filter model",
+    "dev.agiro.criteriafilter.repository": "Repository API & pagination",
+    "dev.agiro.criteriafilter.repository.hibernatesearch": "Hibernate Search backend (stub)",
+    "dev.agiro.criteriafilter.repository.jpa": "JPA translation & JSONB",
+    "dev.agiro.criteriafilter.repository.opensearch": "OpenSearch backend (stub)",
+    "dev.agiro.criteriafilter.validation": "Validation",
+    "dev.agiro.criteriafilter.web": "Web endpoints"
+  }
+}

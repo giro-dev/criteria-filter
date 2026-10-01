@@ -1,0 +1,150 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Version to release (empty = current SNAPSHOT without the -SNAPSHOT suffix)
+        required: false
+        default: ''
+      next_increment:
+        description: Part to increment for the next development SNAPSHOT
+        type: choice
+        options:
+          - minor
+          - patch
+          - major
+        default: minor
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      REPORT_URL: https://giro-dev.github.io/criteria-filter/report/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Resolve versions
+        id: versions
+        env:
+          RELEASE_INPUT: ${{ inputs.release_version }}
+          INCREMENT: ${{ inputs.next_increment }}
+        run: |
+          current=$(./mvnw -B -q help:evaluate -Dexpression=project.version -DforceStdout)
+          release="${RELEASE_INPUT:-${current%-SNAPSHOT}}"
+          if ! [[ "$release" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release version '$release' is not MAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/v$release" >/dev/null; then
+            echo "::error::Tag v$release already exists"
+            exit 1
+          fi
+          IFS=. read -r major minor patch <<< "$release"
+          case "$INCREMENT" in
+            major) next="$((major + 1)).0.0" ;;
+            minor) next="$major.$((minor + 1)).0" ;;
+            *) next="$major.$minor.$((patch + 1))" ;;
+          esac
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "next=$next-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "Releasing $release (from $current); next development version $next-SNAPSHOT"
+
+      - name: Set release version
+        env:
+          RELEASE: ${{ steps.versions.outputs.release }}
+        run: |
+          .github/scripts/set-version.sh "$RELEASE"
+          sed -i -E "s|^(\s*version = ')[^']*(')|\1${RELEASE}\2|" docs/hugo.toml
+
+      - name: Test and install library
+        id: tests
+        continue-on-error: true
+        run: ./mvnw -B install
+
+      - name: Generate test report
+        if: always()
+        env:
+          RELEASE: ${{ steps.versions.outputs.release }}
+        run: |
+          python3 .github/scripts/test_report.py --version "$RELEASE" --out target/test-report --report-url "$REPORT_URL"
+          cat target/test-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-test-report
+          path: |
+            target/test-report/
+            target/surefire-reports/
+            target/site/jacoco/
+          if-no-files-found: warn
+
+      - name: Stop on test failures
+        if: steps.tests.outcome != 'success'
+        run: |
+          echo "::error::Tests failed; nothing was tagged or released"
+          exit 1
+
+      - name: Build demo
+        run: ../mvnw -B -DskipTests package
+        working-directory: criteria-filter-demo
+
+      - name: Commit release, tag and bump to next SNAPSHOT
+        env:
+          RELEASE: ${{ steps.versions.outputs.release }}
+          NEXT: ${{ steps.versions.outputs.next }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          rm -rf docs/static/report
+          mkdir -p docs/static
+          cp -r target/test-report docs/static/report
+          git add pom.xml criteria-filter-demo/pom.xml criteria-filter-demo/build.gradle docs/hugo.toml docs/static/report
+          git commit -m "release: v$RELEASE"
+          git tag -a "v$RELEASE" -m "criteria-filter $RELEASE"
+
+          .github/scripts/set-version.sh "$NEXT"
+          git add pom.xml criteria-filter-demo/pom.xml criteria-filter-demo/build.gradle
+          git commit -m "chore: prepare $NEXT"
+
+          git push origin HEAD:main "v$RELEASE"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ steps.versions.outputs.release }}
+        run: |
+          (cd target/test-report && zip -qr "../test-report-$RELEASE.zip" .)
+          gh release create "v$RELEASE" \
+            --verify-tag \
+            --title "criteria-filter $RELEASE" \
+            --notes-file target/test-report/summary.md \
+            "target/criteria-filter-$RELEASE.jar" \
+            "target/test-report-$RELEASE.zip"
+
+      - name: Publish report and badges to GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run gh-pages.yml --ref main
