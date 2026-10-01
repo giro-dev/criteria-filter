@@ -13,6 +13,7 @@ Run it from *Actions → Release → Run workflow* on `main`:
 |---|---|---|
 | `release_version` | current version without `-SNAPSHOT` | Version to release, `MAJOR.MINOR.PATCH` |
 | `next_increment` | `minor` | Part to increment for the next development `-SNAPSHOT` |
+| `publish_to_central` | `true` | Also deploy the release to Maven Central |
 
 With `0.1.0-SNAPSHOT` on `main` and the defaults, the workflow:
 
@@ -21,15 +22,37 @@ With `0.1.0-SNAPSHOT` on `main` and the defaults, the workflow:
    If any test fails, the report is still uploaded but nothing is tagged or released.
 3. Generates the visual report and badge data with `.github/scripts/test_report.py`
    and stores them in `docs/static/report/`.
-4. Commits `release: v0.1.0`, tags it `v0.1.0`, then bumps to `0.2.0-SNAPSHOT`
+4. If `publish_to_central` is set, runs `./mvnw -Prelease deploy`: the `release`
+   profile adds sources and javadoc jars, signs everything with GPG and uploads the
+   bundle to the [Central Portal](https://central.sonatype.com) with
+   `central-publishing-maven-plugin` (`autoPublish`, so it goes live after validation).
+   This runs before anything is pushed, so a rejected deployment leaves `main` untouched.
+5. Commits `release: v0.1.0`, tags it `v0.1.0`, then bumps to `0.2.0-SNAPSHOT`
    and commits `chore: prepare 0.2.0-SNAPSHOT`. Both commits and the tag are pushed to `main`.
-5. Creates the GitHub release `v0.1.0` with the library jar, the zipped report and
+6. Creates the GitHub release `v0.1.0` with the library jar, the zipped report and
    a per-functionality summary as release notes.
-6. Redeploys the documentation site, which publishes the report at
+7. Redeploys the documentation site, which publishes the report at
    [`/report/`](https://giro-dev.github.io/criteria-filter/report/).
 
 The workflow pushes to `main` with `GITHUB_TOKEN`. If `main` is protected, allow
 GitHub Actions to bypass the rule (or the push step will be rejected).
+
+### Maven Central setup
+
+Publishing uses four repository secrets (the same names as in `giro-dev/matriarch`):
+
+| Secret | Value |
+|---|---|
+| `OSSRH_USERNAME` | Central Portal user-token username |
+| `OSSRH_PASSWORD` | Central Portal user-token password |
+| `GPG_PRIVATE_KEY` | ASCII-armored private key (`gpg --armor --export-secret-keys <KEY_ID>`) |
+| `GPG_PASSPHRASE` | Passphrase of that key |
+
+The `dev.agiro` namespace must be verified in the Central Portal, and the public
+GPG key must be on a public keyserver (for example `keyserver.ubuntu.com`).
+A deployment can be checked locally without uploading:
+`./mvnw -Prelease -DskipTests -DskipPublishing=true deploy` (needs a local GPG key
+and a `central` server entry in `~/.m2/settings.xml`).
 
 ## Test report
 
