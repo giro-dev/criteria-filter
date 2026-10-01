@@ -4,7 +4,9 @@ import dev.agiro.criteriafilter.interceptor.FilterInterceptor;
 import dev.agiro.criteriafilter.interceptor.FilterInterceptorChain;
 import dev.agiro.criteriafilter.metamodel.EntityFilterMetadata;
 import dev.agiro.criteriafilter.metamodel.FilterMetadataRegistry;
+import dev.agiro.criteriafilter.model.AggregationRequest;
 import dev.agiro.criteriafilter.model.FilterRequest;
+import dev.agiro.criteriafilter.repository.AggregationResult;
 import dev.agiro.criteriafilter.repository.CriteriaRepository;
 import dev.agiro.criteriafilter.repository.FilterResult;
 import dev.agiro.criteriafilter.repository.PageRequest;
@@ -28,6 +30,7 @@ import java.util.List;
  * Base controller exposing uniform search endpoints:
  * <ul>
  *   <li>{@code POST /search} - Execute a filter query</li>
+ *   <li>{@code POST /search/aggregate} - Grouped aggregations over the filtered entities</li>
  *   <li>{@code GET /search/schema} - Get available filter options (fields, operators)</li>
  * </ul>
  *
@@ -53,8 +56,8 @@ public abstract class AbstractFilterController<T> {
     protected abstract FilterMetadataRegistry metadataRegistry();
 
     /**
-     * Opt-in interceptors to apply to this controller's {@code /search}
-     * endpoint, in addition to any globally-applicable ones. Only takes
+     * Opt-in interceptors to apply to this controller's {@code /search} and
+     * {@code /search/aggregate} endpoints, in addition to any globally-applicable ones. Only takes
      * effect for interceptor beans whose {@link FilterInterceptor#global()}
      * returns {@code false}.
      *
@@ -241,6 +244,90 @@ public abstract class AbstractFilterController<T> {
         filterValidator.validate(request, entityType());
         FilterResult<T> result = interceptorChain.execute(
                 entityType(), request, new PageRequest(page, size), repository(), interceptors());
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "Aggregate with filters",
+            description = """
+                    Group the entities matching `filter` by `groupBy` fields and compute aggregates.
+                    
+                    - `filter`: same tree as `POST /search` (optional; omitted = match everything).
+                    - `groupBy`: logical field names (optional; omitted = one row with the totals).
+                    - `aggregations`: at least one `{field, function, alias}`.
+                    
+                    | Function | Allowed field types | Field required |
+                    |----------|---------------------|----------------|
+                    | `SUM`, `AVG` | numbers | yes |
+                    | `MIN`, `MAX` | comparable (numbers, strings, dates, enums) | yes |
+                    | `COUNT` | any (counts non-null values) | no (counts rows) |
+                    | `COUNT_DISTINCT` | any | yes |
+                    
+                    `alias` defaults to `<function>_<field>` (e.g. `sum_price`), or `count`.
+                    Each result row maps the groupBy fields and aliases to their values; rows are
+                    ordered by the groupBy fields. Interceptors apply exactly as for `/search`.
+                    Validation errors use the same `400` body as `/search`
+                    (`UNKNOWN_FIELD`, `UNSUPPORTED_AGGREGATION`, `INVALID_FILTER`).
+                    """
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Filter tree, group-by fields and aggregate functions",
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = AggregationRequest.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "Sum and count per category",
+                                    summary = "Group by one field",
+                                    value = """
+                                            {
+                                              "filter": {"and": [
+                                                {"field": "price", "operator": "GT", "value": 10}
+                                              ]},
+                                              "groupBy": ["category"],
+                                              "aggregations": [
+                                                {"field": "price", "function": "SUM", "alias": "totalPrice"},
+                                                {"function": "COUNT", "alias": "n"}
+                                              ]
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Multiple group-by fields",
+                                    summary = "Group by two fields with min/max/avg",
+                                    value = """
+                                            {
+                                              "groupBy": ["category", "active"],
+                                              "aggregations": [
+                                                {"field": "price", "function": "MIN", "alias": "cheapest"},
+                                                {"field": "price", "function": "MAX", "alias": "priciest"},
+                                                {"field": "price", "function": "AVG", "alias": "avgPrice"}
+                                              ]
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Totals without grouping",
+                                    summary = "Single row over all matches",
+                                    value = """
+                                            {
+                                              "filter": {"field": "category", "operator": "EQ", "value": "BOOK"},
+                                              "aggregations": [
+                                                {"function": "COUNT"},
+                                                {"field": "name", "function": "COUNT_DISTINCT", "alias": "titles"}
+                                              ]
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    @PostMapping("/search/aggregate")
+    public ResponseEntity<AggregationResult> aggregate(@RequestBody @Valid AggregationRequest request) {
+        filterValidator.validateAggregation(request, entityType());
+        AggregationResult result = interceptorChain.executeAggregation(
+                entityType(), request, repository(), interceptors());
         return ResponseEntity.ok(result);
     }
 

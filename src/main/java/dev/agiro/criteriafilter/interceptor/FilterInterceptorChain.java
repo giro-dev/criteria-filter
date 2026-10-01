@@ -1,6 +1,8 @@
 package dev.agiro.criteriafilter.interceptor;
 
+import dev.agiro.criteriafilter.model.AggregationRequest;
 import dev.agiro.criteriafilter.model.FilterRequest;
+import dev.agiro.criteriafilter.repository.AggregationResult;
 import dev.agiro.criteriafilter.repository.CriteriaRepository;
 import dev.agiro.criteriafilter.repository.FilterResult;
 import dev.agiro.criteriafilter.repository.PageRequest;
@@ -100,6 +102,53 @@ public class FilterInterceptorChain {
             }
         }
 
+        return result;
+    }
+
+    /**
+     * Executes an aggregation with the same interceptor selection as
+     * {@link #execute(Class, FilterRequest, PageRequest, CriteriaRepository, List)}.
+     * Filters added by interceptors are ANDed with the aggregation filter.
+     *
+     * @see FilterInterceptor#preAggregate(FilterContext)
+     */
+    @SuppressWarnings("rawtypes")
+    public <T> AggregationResult executeAggregation(Class<T> entityType,
+                                                    AggregationRequest request,
+                                                    CriteriaRepository<T> repository,
+                                                    List<Class<? extends FilterInterceptor>> extraInterceptors) {
+
+        FilterContext<T> context = FilterContext.forAggregation(entityType, request);
+        List<FilterInterceptor<T>> applicable = findApplicable(entityType, extraInterceptors);
+
+        for (FilterInterceptor<T> interceptor : applicable) {
+            try {
+                AggregationResult shortCircuit = interceptor.preAggregate(context);
+                if (shortCircuit != null) {
+                    log.debug("Interceptor {} short-circuited aggregation for {}",
+                            interceptor.getClass().getSimpleName(), entityType.getSimpleName());
+                    return shortCircuit;
+                }
+            } catch (Exception e) {
+                log.error("Error in preAggregate interceptor {}: {}",
+                        interceptor.getClass().getSimpleName(), e.getMessage(), e);
+                throw e;
+            }
+        }
+
+        AggregationRequest finalRequest = request.withFilter(context.buildFinalRequest().filter());
+        AggregationResult result = repository.aggregate(finalRequest);
+
+        for (int i = applicable.size() - 1; i >= 0; i--) {
+            FilterInterceptor<T> interceptor = applicable.get(i);
+            try {
+                result = interceptor.postAggregate(context, result);
+            } catch (Exception e) {
+                log.error("Error in postAggregate interceptor {}: {}",
+                        interceptor.getClass().getSimpleName(), e.getMessage(), e);
+                throw e;
+            }
+        }
         return result;
     }
 

@@ -3,6 +3,7 @@ package dev.agiro.criteriafilter.web;
 import dev.agiro.criteriafilter.exception.FilterTranslationException;
 import dev.agiro.criteriafilter.exception.InvalidPageRequestException;
 import dev.agiro.criteriafilter.exception.UnknownFieldException;
+import dev.agiro.criteriafilter.exception.UnsupportedAggregationException;
 import dev.agiro.criteriafilter.exception.UnsupportedOperatorException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,12 @@ public class FilterExceptionHandler {
     public ResponseEntity<FilterErrorResponse> onUnsupportedOperator(UnsupportedOperatorException ex) {
         return ResponseEntity.badRequest()
                 .body(FilterErrorResponse.of("UNSUPPORTED_OPERATOR", ex.getMessage(), ex.field()));
+    }
+
+    @ExceptionHandler(UnsupportedAggregationException.class)
+    public ResponseEntity<FilterErrorResponse> onUnsupportedAggregation(UnsupportedAggregationException ex) {
+        return ResponseEntity.badRequest()
+                .body(FilterErrorResponse.of("UNSUPPORTED_AGGREGATION", ex.getMessage(), ex.field()));
     }
 
     @ExceptionHandler(FilterTranslationException.class)

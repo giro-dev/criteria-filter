@@ -3,7 +3,9 @@ package dev.agiro.criteriafilter.web;
 import dev.agiro.criteriafilter.interceptor.FilterInterceptor;
 import dev.agiro.criteriafilter.interceptor.FilterInterceptorChain;
 import dev.agiro.criteriafilter.metamodel.FilterMetadataRegistry;
+import dev.agiro.criteriafilter.model.AggregationRequest;
 import dev.agiro.criteriafilter.model.FilterRequest;
+import dev.agiro.criteriafilter.repository.AggregationResult;
 import dev.agiro.criteriafilter.repository.CriteriaRepository;
 import dev.agiro.criteriafilter.repository.CriteriaRepositoryRegistry;
 import dev.agiro.criteriafilter.repository.FilterResult;
@@ -67,6 +69,15 @@ public class FilterEndpointAdapter {
         return ResponseEntity.ok(result);
     }
 
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<AggregationResult> aggregate(@RequestBody @Valid AggregationRequest request) {
+        filterValidator.validateAggregation(request, entityType);
+        CriteriaRepository<Object> repository = (CriteriaRepository<Object>) repositoryRegistry.resolve(entityType);
+        AggregationResult result = interceptorChain.executeAggregation(
+                (Class<Object>) entityType, request, repository, interceptors);
+        return ResponseEntity.ok(result);
+    }
+
     public ResponseEntity<FilterSchemaResponse> schema() {
         return ResponseEntity.ok(FilterSchemaResponse.from(metadataRegistry.require(entityType)));
     }
@@ -77,6 +88,15 @@ public class FilterEndpointAdapter {
             return getClass().getMethod("search", FilterRequest.class, int.class, int.class);
         } catch (NoSuchMethodException e) {
             throw new IllegalStateException("FilterEndpointAdapter.search not found", e);
+        }
+    }
+
+    /** Reflective lookup of the aggregate method. */
+    public Method aggregateMethod() {
+        try {
+            return getClass().getMethod("aggregate", AggregationRequest.class);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException("FilterEndpointAdapter.aggregate not found", e);
         }
     }
 

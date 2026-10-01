@@ -92,6 +92,38 @@ Semantics worth knowing:
 }
 ```
 
+### Aggregations
+
+`POST /search/aggregate` takes an `AggregationRequest`: the same (optional) filter
+tree, optional `groupBy` fields and one or more aggregations. Functions are `SUM`
+and `AVG` (numeric fields), `MIN` and `MAX` (any `Comparable`), `COUNT` (field
+optional — omitted counts rows) and `COUNT_DISTINCT`. `alias` defaults to
+`<function>_<field>` (or `count`).
+
+```json
+{
+  "filter": { "and": [ { "field": "active", "operator": "EQ", "value": true } ] },
+  "groupBy": ["category"],
+  "aggregations": [
+    { "field": "price", "function": "SUM", "alias": "totalPrice" },
+    { "function": "COUNT", "alias": "n" }
+  ]
+}
+```
+
+returns one row per group, sorted by the group keys:
+
+```json
+{ "rows": [ { "category": "BOOK", "totalPrice": 80.00, "n": 2 },
+            { "category": "FOOD", "totalPrice": 5.50,  "n": 1 } ] }
+```
+
+Unknown fields return `400 UNKNOWN_FIELD`, incompatible function/field types
+`400 UNSUPPORTED_AGGREGATION`. Interceptors apply as for `/search` (filters added
+in `preFilter` are ANDed in). Only the JPA backend implements aggregations; others
+throw `UnsupportedOperationException` (`501`). See the
+[aggregations docs](docs/content/docs/features/aggregations.md).
+
 ## Controllers
 
 ```java
@@ -117,7 +149,9 @@ public class ProductController extends AbstractFilterController<Product> {
 ```
 
 `AbstractFilterController` exposes `POST /search` returning
-`FilterResult<T>(content, totalHits, hasMore)`.
+`FilterResult<T>(content, totalHits, hasMore)` and `POST /search/aggregate`
+returning `AggregationResult(rows)`. `@EnableFilterEndpoint` registers the
+aggregation endpoint too (`aggregatePath`, `includeAggregate = false` to opt out).
 
 ## Configuration
 
@@ -132,6 +166,9 @@ criteria-filter:
   max-depth: 32          # group nesting depth
   max-conditions: 1000   # conditions in the whole tree
   max-values: 1000       # values in a single condition (IN, JSON_EXISTS_ANY, ...)
+  max-group-by: 16                # groupBy fields per aggregation request
+  max-aggregations: 64            # aggregations per request
+  max-aggregation-groups: 10000   # result rows of a grouped aggregation
 ```
 
 Auto-configuration registers all beans; just add the dependency.

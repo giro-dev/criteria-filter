@@ -89,7 +89,7 @@ public class CriteriaFilterBeanInitializer implements ApplicationListener<Contex
         Backend backend = metadata.backend();
         return switch (backend) {
             case JPA -> new JpaCriteriaRepository<>(requireEntityManager(entityType), entityType,
-                    metadata, jpaTranslator);
+                    metadata, jpaTranslator, properties.getMaxAggregationGroups());
             case OPENSEARCH -> new OpenSearchCriteriaRepository<>(entityType, metadata);
             case HIBERNATE_SEARCH -> new HibernateSearchCriteriaRepository<>(entityType, metadata);
         };

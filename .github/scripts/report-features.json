@@ -35,6 +35,15 @@
       ]
     },
     {
+      "name": "Aggregations",
+      "tests": [
+        "AggregationValidationTest",
+        "JpaAggregationIntegrationTest",
+        "AggregationInterceptorChainTest",
+        "AggregationEndpointTest"
+      ]
+    },
+    {
       "name": "PostgreSQL JSONB operators",
       "tests": [
         "PostgresJsonbIntegrationTest"
