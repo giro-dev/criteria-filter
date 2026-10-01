@@ -1,0 +1,267 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>criteria-filter 0.1.0-SNAPSHOT test report</title><style>
+:root{--ok:#2da44e;--fail:#cf222e;--skip:#bf8700;--muted:#57606a;--bg:#f6f8fa;--line:#d0d7de}
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;margin:0;color:#1f2328;background:#fff}
+header{background:#0d1117;color:#fff;padding:28px 40px}header h1{margin:0 0 6px;font-size:26px}header p{margin:0;color:#9da7b3}
+main{max-width:1100px;margin:0 auto;padding:24px 40px 60px}h2{margin-top:36px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:-44px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card .v{font-size:28px;font-weight:600}.card .l{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{background:var(--bg);font-size:13px;color:var(--muted)}td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;color:#fff}
+.passed{background:var(--ok)}.failed{background:var(--fail)}.skipped,.missing{background:var(--skip)}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#eaeef2;min-width:140px}.bar span{display:block}
+.meter{position:relative;height:10px;border-radius:5px;background:#eaeef2;min-width:120px}.meter span{position:absolute;inset:0 auto 0 0;border-radius:5px}
+details{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:0 12px}summary{cursor:pointer;padding:10px 0;font-weight:600}
+details table{margin:0 0 10px}.msg{color:var(--fail);font-size:12px;font-family:ui-monospace,monospace}
+footer{color:var(--muted);font-size:12px;margin-top:40px}
+</style></head><body>
+<header><h1>criteria-filter 0.1.0-SNAPSHOT</h1><p>Test and coverage report &middot; generated 2026-10-01 10:20 UTC</p></header><main>
+<div class="cards"><div class="card"><div class="l">Version</div><div class="v">0.1.0-SNAPSHOT</div></div><div class="card"><div class="l">Tests</div><div class="v">200</div></div><div class="card"><div class="l">Passed</div><div class="v"><span style="color:var(--ok)">200</span></div></div><div class="card"><div class="l">Failed</div><div class="v"><span style="color:var(--fail)">0</span></div></div><div class="card"><div class="l">Skipped</div><div class="v"><span style="color:var(--skip)">0</span></div></div><div class="card"><div class="l">Line coverage</div><div class="v">83.2%</div></div><div class="card"><div class="l">Method coverage</div><div class="v">82.9%</div></div></div>
+<h2>Functionality</h2><table><tr><th>Functionality</th><th>Status</th><th>Results</th><th class=n>Passed</th><th class=n>Failed</th><th class=n>Skipped</th><th class=n>Time</th></tr>
+<tr><td>Filter model &amp; JSON parsing</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>20</td><td class=n>0</td><td class=n>0</td><td class=n>0.08s</td></tr>
+<tr><td>Validation &amp; request limits</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>31</td><td class=n>0</td><td class=n>0</td><td class=n>0.04s</td></tr>
+<tr><td>Metamodel &amp; annotations</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>3</td><td class=n>0</td><td class=n>0</td><td class=n>0.00s</td></tr>
+<tr><td>Type coercion</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>46</td><td class=n>0</td><td class=n>0</td><td class=n>0.01s</td></tr>
+<tr><td>JPA operators &amp; translation</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>36</td><td class=n>0</td><td class=n>0</td><td class=n>0.64s</td></tr>
+<tr><td>PostgreSQL JSONB operators</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>11</td><td class=n>0</td><td class=n>0</td><td class=n>0.85s</td></tr>
+<tr><td>Pagination</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>5</td><td class=n>0</td><td class=n>0</td><td class=n>0.00s</td></tr>
+<tr><td>Web endpoints &amp; interceptors</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>13</td><td class=n>0</td><td class=n>0</td><td class=n>0.38s</td></tr>
+<tr><td>Security &amp; hostile input</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>29</td><td class=n>0</td><td class=n>0</td><td class=n>0.24s</td></tr>
+<tr><td>Performance budgets</td><td><span class="chip passed">passed</span></td><td><div class="bar"><span class="passed" style="width:100.00%"></span></div></td><td class=n>6</td><td class=n>0</td><td class=n>0</td><td class=n>0.76s</td></tr>
+</table>
+<h2>Coverage by module</h2><table><tr><th>Module</th><th>Line coverage</th><th class=n>Lines</th><th>Method coverage</th><th class=n>Methods</th><th class=n>Branches</th></tr>
+<tr><td>Auto-configuration</td><td><div class="meter"><span style="width:77.8%;background:var(--skip)"></span></div></td><td class=n>77.8% (28/36)</td><td><div class="meter"><span style="width:83.3%;background:var(--ok)"></span></div></td><td class=n>83.3% (20/24)</td><td class=n>n/a</td></tr>
+<tr><td>Exceptions</td><td><div class="meter"><span style="width:95.0%;background:var(--ok)"></span></div></td><td class=n>95.0% (19/20)</td><td><div class="meter"><span style="width:90.0%;background:var(--ok)"></span></div></td><td class=n>90.0% (9/10)</td><td class=n>n/a</td></tr>
+<tr><td>Filter model</td><td><div class="meter"><span style="width:93.4%;background:var(--ok)"></span></div></td><td class=n>93.4% (71/76)</td><td><div class="meter"><span style="width:79.2%;background:var(--skip)"></span></div></td><td class=n>79.2% (19/24)</td><td class=n>83.3%</td></tr>
+<tr><td>Hibernate Search backend (stub)</td><td><div class="meter"><span style="width:0.0%;background:var(--fail)"></span></div></td><td class=n>0.0% (0/7)</td><td><div class="meter"><span style="width:0.0%;background:var(--fail)"></span></div></td><td class=n>0.0% (0/4)</td><td class=n>n/a</td></tr>
+<tr><td>Interceptors</td><td><div class="meter"><span style="width:59.6%;background:var(--fail)"></span></div></td><td class=n>59.6% (56/94)</td><td><div class="meter"><span style="width:48.0%;background:var(--fail)"></span></div></td><td class=n>48.0% (12/25)</td><td class=n>44.7%</td></tr>
+<tr><td>JPA translation &amp; JSONB</td><td><div class="meter"><span style="width:91.9%;background:var(--ok)"></span></div></td><td class=n>91.9% (249/271)</td><td><div class="meter"><span style="width:94.4%;background:var(--ok)"></span></div></td><td class=n>94.4% (51/54)</td><td class=n>82.5%</td></tr>
+<tr><td>Metamodel</td><td><div class="meter"><span style="width:79.2%;background:var(--skip)"></span></div></td><td class=n>79.2% (156/197)</td><td><div class="meter"><span style="width:88.9%;background:var(--ok)"></span></div></td><td class=n>88.9% (32/36)</td><td class=n>60.7%</td></tr>
+<tr><td>OpenSearch backend (stub)</td><td><div class="meter"><span style="width:0.0%;background:var(--fail)"></span></div></td><td class=n>0.0% (0/7)</td><td><div class="meter"><span style="width:0.0%;background:var(--fail)"></span></div></td><td class=n>0.0% (0/4)</td><td class=n>n/a</td></tr>
+<tr><td>Repository API &amp; pagination</td><td><div class="meter"><span style="width:86.4%;background:var(--ok)"></span></div></td><td class=n>86.4% (19/22)</td><td><div class="meter"><span style="width:85.7%;background:var(--ok)"></span></div></td><td class=n>85.7% (6/7)</td><td class=n>83.3%</td></tr>
+<tr><td>Validation</td><td><div class="meter"><span style="width:95.1%;background:var(--ok)"></span></div></td><td class=n>95.1% (58/61)</td><td><div class="meter"><span style="width:100.0%;background:var(--ok)"></span></div></td><td class=n>100.0% (8/8)</td><td class=n>91.4%</td></tr>
+<tr><td>Web endpoints</td><td><div class="meter"><span style="width:84.0%;background:var(--ok)"></span></div></td><td class=n>84.0% (220/262)</td><td><div class="meter"><span style="width:95.5%;background:var(--ok)"></span></div></td><td class=n>95.5% (42/44)</td><td class=n>55.1%</td></tr>
+</table>
+<h2>Test cases</h2>
+<details><summary><span class="chip passed">passed</span> Filter model &amp; JSON parsing &middot; 20 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>FilterGroupNestedTest</td><td>deserializesDeeplyNestedGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>deserializesFilterRequestWithNestedFilter</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>deserializesIhoStyleAndGroup</td><td><span class="chip passed">passed</span></td><td class=n>0.003s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>deserializesIhoStyleOrGroup</td><td><span class="chip passed">passed</span></td><td class=n>0.003s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>deserializesNestedAndOrGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.003s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>factoryMethodsCreateCorrectGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>roundTripsNestedStructure</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>serializesToIhoStyleJson</td><td><span class="chip passed">passed</span></td><td class=n>0.002s</td></tr>
+<tr><td>FilterGroupNestedTest</td><td>supportsLegacyCombinatorSyntax</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>duplicateKeysUseLastValue</td><td><span class="chip passed">passed</span></td><td class=n>0.006s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>groupWithoutCombinatorDefaultsToAnd</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>nullChildrenAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>parsesExplicitCombinatorSyntax</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>parsesSingleCondition</td><td><span class="chip passed">passed</span></td><td class=n>0.003s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>preservesJsonOperandTypes</td><td><span class="chip passed">passed</span></td><td class=n>0.002s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>prototypePollutionKeysAreInertInJava</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>rejectsAmbiguousGroupSyntax</td><td><span class="chip passed">passed</span></td><td class=n>0.006s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>rejectsUnknownCombinator</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>rejectsUnknownOrLowercaseOperators</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterRequestJsonTest</td><td>roundTripsNestedTree</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> Validation &amp; request limits &middot; 31 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>acceptsEmptyGroupsAndContradictions</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>acceptsMaximumDepth</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>depthLimitAlsoAppliesToEmptyGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>emptyValuesListIsRejectedForIn</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>jsonArrayContainsAcceptsOptionalPath</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>limitsAreConfigurable</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>limitsTotalConditionsAcrossTheTree</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>limitsValuesPerCondition</td><td><span class="chip passed">passed</span></td><td class=n>0.003s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsBlankField(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsBlankField(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsExcessiveDepth</td><td><span class="chip passed">passed</span></td><td class=n>0.002s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.009s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[5]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[6]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[7]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsFieldNamesOutsideTheWhitelist(String)[8]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsMissingOperator</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsMissingRequestOrFilter</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsNulCharacters</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsNullChildNode</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsNullField</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsNullOperandsInLists</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>rejectsValueAndValuesTogether</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorHardeningTest</td><td>singleNullValueIsReportedAsMissingValue</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorTest</td><td>acceptsValidNestedRequest</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorTest</td><td>rejectsUnknownField</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorTest</td><td>rejectsUnsupportedOperatorForField</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>FilterValidatorTest</td><td>rejectsWrongArity</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> Metamodel &amp; annotations &middot; 3 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>EntityFilterMetadataBuilderTest</td><td>failsFastWhenAnnotatedFieldMissingOnEntity</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>EntityFilterMetadataBuilderTest</td><td>infersOperatorsAndExcludesUnannotatedFields</td><td><span class="chip passed">passed</span></td><td class=n>0.002s</td></tr>
+<tr><td>EntityFilterMetadataBuilderTest</td><td>resolvesDatePatternPerBackend</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> Type coercion &middot; 46 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>ValueCoercionTest</td><td>acceptsFiniteFloatingPointBoundaries</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>bigIntegerRejectsFractions</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesArbitraryPrecisionNumbers</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesEnumsCaseSensitively</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesFalseString</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesIntegralBoundaries</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesStringsAndUnicodeUnchanged</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesTemporalTypesWithTimezones</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesTrueStrings(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesTrueStrings(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesTrueStrings(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>coercesUuid</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>localDateTimeRejectsZonedOrPartialValues(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>localDateTimeRejectsZonedOrPartialValues(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>localDateTimeRejectsZonedOrPartialValues(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>nullStaysNull</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>passesStructuredValuesThroughForStructuredTypes</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsExtremeArbitraryPrecisionNumbers(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsExtremeArbitraryPrecisionNumbers(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsExtremeArbitraryPrecisionNumbers(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsInvalidLocalDates(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsInvalidLocalDates(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsInvalidLocalDates(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsInvalidLocalDates(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsInvalidLocalDates(String)[5]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsLongOverflow</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonBooleanStrings(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonBooleanStrings(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonBooleanStrings(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonBooleanStrings(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonBooleanStrings(String)[5]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonFiniteBigDecimal(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonFiniteBigDecimal(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonFiniteBigDecimal(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonFiniteFloatingPoint(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonFiniteFloatingPoint(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonFiniteFloatingPoint(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNonFiniteFloatingPoint(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsNumericBoolean</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsOverflowingOrMalformedIntegers(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsOverflowingOrMalformedIntegers(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsOverflowingOrMalformedIntegers(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsOverflowingOrMalformedIntegers(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsOverflowingOrMalformedIntegers(String)[5]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsOverflowingOrMalformedIntegers(String)[6]</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>ValueCoercionTest</td><td>rejectsStructuredValuesForScalarTypes</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> JPA operators &amp; translation &middot; 36 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>combinesWithOrAndPaginatesWithHasMore</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>filtersByInList</td><td><span class="chip passed">passed</span></td><td class=n>0.006s</td></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>filtersByInstantComparison</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>filtersByLikeAndEnum</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>filtersByNumericBetweenWithStringOperands</td><td><span class="chip passed">passed</span></td><td class=n>0.006s</td></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>filtersWithDeeplyNestedGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>filtersWithNestedAndOrGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.009s</td></tr>
+<tr><td>JpaCriteriaRepositoryIntegrationTest</td><td>filtersWithTripleLevelNesting</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>ambiguousBooleansAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.013s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>associationsCompareByIdentifier</td><td><span class="chip passed">passed</span></td><td class=n>0.028s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>booleans</td><td><span class="chip passed">passed</span></td><td class=n>0.021s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>comparisonOperators</td><td><span class="chip passed">passed</span></td><td class=n>0.024s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>contradictionsAndDuplicates</td><td><span class="chip passed">passed</span></td><td class=n>0.030s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>emptyGroupsFollowBooleanIdentities</td><td><span class="chip passed">passed</span></td><td class=n>0.032s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>eqAndNe</td><td><span class="chip passed">passed</span></td><td class=n>0.023s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>floatingPointValues</td><td><span class="chip passed">passed</span></td><td class=n>0.024s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>inAndBetween</td><td><span class="chip passed">passed</span></td><td class=n>0.028s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>injectionAttemptsInValuesAreBoundAsLiterals</td><td><span class="chip passed">passed</span></td><td class=n>0.027s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>instantsAcceptOffsets</td><td><span class="chip passed">passed</span></td><td class=n>0.019s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>integerBoundaries</td><td><span class="chip passed">passed</span></td><td class=n>0.023s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>likeIsCaseInsensitiveContains</td><td><span class="chip passed">passed</span></td><td class=n>0.023s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>likeTreatsWildcardsLiterally</td><td><span class="chip passed">passed</span></td><td class=n>0.028s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>localDates</td><td><span class="chip passed">passed</span></td><td class=n>0.024s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>neExcludesNullsLikeSql</td><td><span class="chip passed">passed</span></td><td class=n>0.016s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>nestedAndOr</td><td><span class="chip passed">passed</span></td><td class=n>0.028s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>nonFiniteNumbersAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.051s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>nullChecks</td><td><span class="chip passed">passed</span></td><td class=n>0.015s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>offsetDateTimesCompareByInstantAcrossTimezones</td><td><span class="chip passed">passed</span></td><td class=n>0.021s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>paginationReportsHasMore</td><td><span class="chip passed">passed</span></td><td class=n>0.022s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>structuredValuesForScalarFieldsAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.020s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>unicodeStrings</td><td><span class="chip passed">passed</span></td><td class=n>0.023s</td></tr>
+<tr><td>JpaOperatorCoverageIntegrationTest</td><td>uuids</td><td><span class="chip passed">passed</span></td><td class=n>0.019s</td></tr>
+<tr><td>LikePatternsTest</td><td>emptyValueMatchesEverything</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>LikePatternsTest</td><td>escapesUserSuppliedWildcards</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>LikePatternsTest</td><td>lowercasesIndependentlyOfDefaultLocale</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>LikePatternsTest</td><td>wrapsValueInContainsWildcards</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> PostgreSQL JSONB operators &middot; 11 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>arrayContainsAtRootAndNestedPath</td><td><span class="chip passed">passed</span></td><td class=n>0.044s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>combinesWithLogicalGroupsAndNullChecks</td><td><span class="chip passed">passed</span></td><td class=n>0.026s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>containedBy</td><td><span class="chip passed">passed</span></td><td class=n>0.029s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>containsAcceptsJsonStringsAndObjects</td><td><span class="chip passed">passed</span></td><td class=n>0.022s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>injectionAttemptsAreTreatedAsData</td><td><span class="chip passed">passed</span></td><td class=n>0.028s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>keyExistence</td><td><span class="chip passed">passed</span></td><td class=n>0.583s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>malformedJsonIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.015s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>pathEqualityAndLike</td><td><span class="chip passed">passed</span></td><td class=n>0.028s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>pathLikeTreatsWildcardsLiterally</td><td><span class="chip passed">passed</span></td><td class=n>0.034s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>scalarJsonDocumentsAreSerialized</td><td><span class="chip passed">passed</span></td><td class=n>0.021s</td></tr>
+<tr><td>PostgresJsonbIntegrationTest</td><td>trailingContentAfterJsonIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.020s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> Pagination &middot; 5 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>PageRequestTest</td><td>acceptsLargestRepresentableOffset</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>PageRequestTest</td><td>computesOffset</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>PageRequestTest</td><td>rejectsMaxIntSize</td><td><span class="chip passed">passed</span></td><td class=n>0.001s</td></tr>
+<tr><td>PageRequestTest</td><td>rejectsNegativePageAndNonPositiveSize</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+<tr><td>PageRequestTest</td><td>rejectsOffsetOverflow</td><td><span class="chip passed">passed</span></td><td class=n>0.000s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> Web endpoints &amp; interceptors &middot; 13 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>FilterEndpointAnnotationTest</td><td>enableFilterEndpointRegistersSearchAndSchema</td><td><span class="chip passed">passed</span></td><td class=n>0.234s</td></tr>
+<tr><td>FilterEndpointAnnotationTest</td><td>filterSchemaAnnotationExecutesDefaultSchema</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterEndpointAnnotationTest</td><td>filterSearchAnnotationExecutesDefaultFilter</td><td><span class="chip passed">passed</span></td><td class=n>0.019s</td></tr>
+<tr><td>FilterInterceptorTest</td><td>interceptorCanAddFilters</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterInterceptorTest</td><td>interceptorCanModifyResults</td><td><span class="chip passed">passed</span></td><td class=n>0.018s</td></tr>
+<tr><td>FilterInterceptorTest</td><td>interceptorCanShareAttributesBetweenPhases</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterInterceptorTest</td><td>interceptorIsCalledDuringSearch</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>ProductControllerTest</td><td>schemaEndpointReturnsFieldsAndOperators</td><td><span class="chip passed">passed</span></td><td class=n>0.008s</td></tr>
+<tr><td>ProductControllerTest</td><td>schemaFieldsContainSupportedOperators</td><td><span class="chip passed">passed</span></td><td class=n>0.021s</td></tr>
+<tr><td>ProductControllerTest</td><td>searchDeserializesJsonTreeAndReturnsMatches</td><td><span class="chip passed">passed</span></td><td class=n>0.033s</td></tr>
+<tr><td>ProductControllerTest</td><td>searchWithDeeplyNestedGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.011s</td></tr>
+<tr><td>ProductControllerTest</td><td>searchWithIhoStyleNestedAndOrGroups</td><td><span class="chip passed">passed</span></td><td class=n>0.012s</td></tr>
+<tr><td>ProductControllerTest</td><td>unknownFieldYields400WithUniformBody</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> Security &amp; hostile input &middot; 29 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>FilterSecurityWebTest</td><td>conflictingKeysAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>deeplyNestedPayloadsAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.020s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>emptyGroupsAreAccepted</td><td><span class="chip passed">passed</span></td><td class=n>0.009s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>injectionInValuesMatchesNothing</td><td><span class="chip passed">passed</span></td><td class=n>0.011s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>invalidPagingIsRejected(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>invalidPagingIsRejected(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>invalidPagingIsRejected(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>invalidPagingIsRejected(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>invalidPagingIsRejected(String)[5]</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>malformedJsonIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>maliciousFieldNamesAreRejected(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.008s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>maliciousFieldNamesAreRejected(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>maliciousFieldNamesAreRejected(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>maliciousFieldNamesAreRejected(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>maliciousFieldNamesAreRejected(String)[5]</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>missingFieldIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.006s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>missingOrEmptyFilterIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.014s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>nulCharacterIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>nullOperandsAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.009s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>operatorNotAllowedForFieldIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.008s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>oversizedPayloadsAreRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.028s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>prototypePollutionKeysAreIgnored</td><td><span class="chip passed">passed</span></td><td class=n>0.007s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>smuggledOperatorsAreRejected(String)[1]</td><td><span class="chip passed">passed</span></td><td class=n>0.006s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>smuggledOperatorsAreRejected(String)[2]</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>smuggledOperatorsAreRejected(String)[3]</td><td><span class="chip passed">passed</span></td><td class=n>0.004s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>smuggledOperatorsAreRejected(String)[4]</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>smuggledOperatorsAreRejected(String)[5]</td><td><span class="chip passed">passed</span></td><td class=n>0.005s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>typeConfusionIsRejected</td><td><span class="chip passed">passed</span></td><td class=n>0.018s</td></tr>
+<tr><td>FilterSecurityWebTest</td><td>unicodeRoundTrips</td><td><span class="chip passed">passed</span></td><td class=n>0.008s</td></tr>
+</table></details>
+<details><summary><span class="chip passed">passed</span> Performance budgets &middot; 6 tests</summary><table><tr><th>Class</th><th>Test</th><th>Status</th><th class=n>Time</th></tr>
+<tr><td>FilterPerformanceBudgetTest</td><td>excessiveNestingIsRejectedWithinBudget</td><td><span class="chip passed">passed</span></td><td class=n>0.053s</td></tr>
+<tr><td>FilterPerformanceBudgetTest</td><td>maximumConditionCountFitsBudget</td><td><span class="chip passed">passed</span></td><td class=n>0.150s</td></tr>
+<tr><td>FilterPerformanceBudgetTest</td><td>maximumInListFitsBudget</td><td><span class="chip passed">passed</span></td><td class=n>0.050s</td></tr>
+<tr><td>FilterPerformanceBudgetTest</td><td>maximumNestingFitsBudget</td><td><span class="chip passed">passed</span></td><td class=n>0.031s</td></tr>
+<tr><td>FilterPerformanceBudgetTest</td><td>oversizedConditionCountIsRejectedWithinBudget</td><td><span class="chip passed">passed</span></td><td class=n>0.378s</td></tr>
+<tr><td>FilterPerformanceBudgetTest</td><td>oversizedInListIsRejectedWithinBudget</td><td><span class="chip passed">passed</span></td><td class=n>0.097s</td></tr>
+</table></details>
+<footer>Generated by .github/scripts/test_report.py from Surefire and JaCoCo reports.</footer></main></body></html>

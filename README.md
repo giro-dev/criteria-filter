@@ -1,5 +1,15 @@
 # criteria-filter
 
+[![Release](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Frelease.json)](https://github.com/giro-dev/criteria-filter/releases/latest)
+[![CI](https://github.com/giro-dev/criteria-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/giro-dev/criteria-filter/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Ftests.json)](https://giro-dev.github.io/criteria-filter/report/)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Fcoverage.json)](https://giro-dev.github.io/criteria-filter/report/)
+[![Function coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fgiro-dev.github.io%2Fcriteria-filter%2Freport%2Fbadges%2Ffunction-coverage.json)](https://giro-dev.github.io/criteria-filter/report/)
+[![Maintained](https://img.shields.io/badge/maintained-yes-brightgreen)](https://github.com/giro-dev/criteria-filter/commits/main)
+[![Java](https://img.shields.io/badge/java-21-orange?logo=openjdk)](https://openjdk.org/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/spring%20boot-3.3-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Internal library that translates a single JSON filter request into queries for
 multiple backends. It replaces per-request reflection over entity fields with an
 **annotation-driven metamodel resolved once at startup**, while keeping
@@ -10,7 +20,9 @@ extensibility for ambiguous cases (date formats, per-backend custom fields).
 > backends are stubs (`UnsupportedOperationException`) — the metamodel already
 > resolves per-backend field names and date patterns for them.
 
-[Read the published documentation](https://giro-dev.github.io/criteria-filter/).
+[Read the published documentation](https://giro-dev.github.io/criteria-filter/) ·
+[latest test & coverage report](https://giro-dev.github.io/criteria-filter/report/) ·
+[how releases work](https://giro-dev.github.io/criteria-filter/docs/releasing/).
 
 ## How it works
 
