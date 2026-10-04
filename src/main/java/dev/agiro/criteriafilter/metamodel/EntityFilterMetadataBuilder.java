@@ -2,6 +2,7 @@ package dev.agiro.criteriafilter.metamodel;
 
 import dev.agiro.criteriafilter.annotation.CriteriaFilter;
 import dev.agiro.criteriafilter.annotation.FilterField;
+import dev.agiro.criteriafilter.model.FieldSelection;
 import dev.agiro.criteriafilter.model.Operator;
 
 import java.lang.reflect.Field;
@@ -32,12 +33,12 @@ public class EntityFilterMetadataBuilder {
         Class<?> entityType = marker.entity() == Void.class ? annotatedType : marker.entity();
 
         Iterable<Field> allFields = declaredFields(annotatedType);
-        boolean hasExplicitFields = hasAnyFilterFieldAnnotation(allFields);
+        FieldSelection selection = resolveSelection(marker.selection(), allFields);
 
         Map<String, FieldMetadata> fields = new LinkedHashMap<>();
         for (Field field : allFields) {
             FilterField ff = field.getAnnotation(FilterField.class);
-            if (shouldSkip(field, ff, hasExplicitFields)) continue;
+            if (shouldSkip(field, ff, selection)) continue;
 
             if (entityType != annotatedType && findField(entityType, field.getName()) == null) {
                 throw new IllegalStateException("Filter field '" + field.getName() + "' declared on "
@@ -54,13 +55,18 @@ public class EntityFilterMetadataBuilder {
         return new EntityFilterMetadata(entityType, marker.backend(), fields);
     }
 
-    private static boolean shouldSkip(Field field, FilterField ff, boolean hasExplicitFields) {
-        if (hasExplicitFields) {
-            return ff == null || ff.excluded();
-        }
-        return java.lang.reflect.Modifier.isStatic(field.getModifiers())
-                || field.isSynthetic()
-                || (ff != null && ff.excluded());
+    private static FieldSelection resolveSelection(FieldSelection declared, Iterable<Field> fields) {
+        if (declared != FieldSelection.AUTO) return declared;
+        return hasAnyFilterFieldAnnotation(fields) ? FieldSelection.ANNOTATED : FieldSelection.ALL_FIELDS;
+    }
+
+    private static boolean shouldSkip(Field field, FilterField ff, FieldSelection selection) {
+        if (ff != null && ff.excluded()) return true;
+        return switch (selection) {
+            case ANNOTATED -> ff == null;
+            case ALL_FIELDS -> java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.isSynthetic();
+            case AUTO -> throw new IllegalStateException("AUTO must be resolved before field selection");
+        };
     }
 
     private static boolean hasAnyFilterFieldAnnotation(Iterable<Field> fields) {
