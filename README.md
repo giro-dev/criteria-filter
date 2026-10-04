@@ -55,6 +55,32 @@ public class Product {
 }
 ```
 
+### Choosing the filterable fields
+
+`@CriteriaFilter(selection = ...)` decides which fields are filterable:
+
+| `selection` | Filterable fields |
+|---|---|
+| `AUTO` (default) | `ANNOTATED` if the type has at least one `@FilterField`, `ALL_FIELDS` otherwise (pre-existing behaviour) |
+| `ANNOTATED` | Only fields carrying `@FilterField` — a type with none exposes no fields |
+| `ALL_FIELDS` | Every non-`static`, non-synthetic field; `@FilterField` only overrides the inferred defaults |
+
+`@FilterField(excluded = true)` always hides the field, whatever the mode. Under
+`AUTO` it also counts as a `@FilterField`, so a type whose only annotation is
+`excluded = true` exposes nothing — use `ALL_FIELDS` to hide a single field
+while keeping the rest.
+
+```java
+@Entity
+@CriteriaFilter(selection = FieldSelection.ALL_FIELDS)
+public class Customer {
+    @Id Long id;                                       // filterable
+    String name;                                       // filterable
+    @FilterField(operators = {Operator.EQ}) String country; // filterable, EQ only
+    @FilterField(excluded = true) String passwordHash; // never filterable
+}
+```
+
 ### Operator inference by type
 
 | Java type | Default operators |

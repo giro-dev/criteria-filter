@@ -1,6 +1,6 @@
 ---
 title: Features
-description: Operators, JSONB support, aggregations, and endpoint-level interceptors.
+description: Field selection, operators, JSONB support, aggregations, and endpoint-level interceptors.
 weight: 20
 ---
 

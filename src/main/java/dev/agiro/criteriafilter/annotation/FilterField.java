@@ -50,6 +50,9 @@ public @interface FilterField {
     /** Truncation applied to temporal values before comparison. */
     ChronoUnit dateTruncate() default ChronoUnit.MILLIS;
 
-    /** Hides the field from the filter surface entirely. */
+    /**
+     * Hides the field from the filter surface entirely. Always applies,
+     * regardless of {@link CriteriaFilter#selection()}.
+     */
     boolean excluded() default false;
 }
